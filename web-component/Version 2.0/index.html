@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Introduction to WebComponents</title>
+    <style>
+        table,
+        td,
+        th,
+        tr {
+            border: 2px solid black;
+            border-collapse: collapse;
+        }
+
+        td,
+        th {
+            padding: 10px;
+            text-align: center;
+            max-width: 200px;
+        }
+
+        .column {
+            font-weight: bolder;
+        }
+    </style>
+</head>
+
+<body>
+
+</body>
+
+<script>
+    // JSON con datos de cuentas
+    const cuentasData = {
+         "cuentas": [
+      {
+        "id": 1,
+        "username": "IronMan92",
+        "balance": "$100.50"
+      },
+      {
+        "id": 2,
+        "username": "LunaGamer77",
+        "balance": "$75.25"
+      },
+      {
+        "id": 3,
+        "username": "ShadowNinja123",
+        "balance": "$200.00"
+      },
+      {
+        "id": 4,
+        "username": "DragonMasterX",
+        "balance": "$50.75"
+      },
+      {
+        "id": 5,
+        "username": "SpaceExplorer99",
+        "balance": "$300.30"
+      },
+      {
+        "id": 6,
+        "username": "PixelWizard",
+        "balance": "$150.00"
+      },
+      {
+        "id": 7,
+        "username": "MysterySeeker",
+        "balance": "$80.60"
+      },
+      {
+        "id": 8,
+        "username": "EternalDreamer",
+        "balance": "$400.20"
+      },
+      {
+        "id": 9,
+        "username": "SunnySideUp",
+        "balance": "$10.00"
+      },
+      {
+        "id": 10,
+        "username": "NeonPhantom",
+        "balance": "$50.00"
+      },
+      {
+        "id": 11,
+        "username": "CyberPunk99",
+        "balance": "$125.75"
+      },
+      {
+        "id": 12,
+        "username": "GalacticTraveler",
+        "balance": "$275.50"
+      },
+      {
+        "id": 13,
+        "username": "TechWizard",
+        "balance": "$90.25"
+      },
+      {
+        "id": 14,
+        "username": "MysticMage",
+        "balance": "$180.00"
+      },
+      {
+        "id": 15,
+        "username": "SamuraiWarrior",
+        "balance": "$200.60"
+      },
+      {
+        "id": 16,
+        "username": "StealthyAssassin",
+        "balance": "$450.20"
+      },
+      {
+        "id": 17,
+        "username": "CosmicExplorer",
+        "balance": "$15.00"
+      },
+      {
+        "id": 18,
+        "username": "DreamCatcher",
+        "balance": "$75.00"
+      },
+      {
+        "id": 19,
+        "username": "ArcaneSorcerer",
+        "balance": "$300.00"
+      },
+      {
+        "id": 20,
+        "username": "StarStrider",
+        "balance": "$500.00"
+      },
+      {
+        "id": 21,
+        "username": "NeoGamer",
+        "balance": "$110.00"
+      },
+      {
+        "id": 22,
+        "username": "TechNinja",
+        "balance": "$95.50"
+      },
+      {
+        "id": 23,
+        "username": "GalacticHero",
+        "balance": "$700.75"
+      },
+      {
+        "id": 24,
+        "username": "DreamWalker",
+        "balance": "$250.25"
+      },
+      {
+        "id": 25,
+        "username": "CyberMage",
+        "balance": "$180.80"
+      },
+      {
+        "id": 26,
+        "username": "SpacePilot",
+        "balance": "$600.00"
+      },
+      {
+        "id": 27,
+        "username": "TechSavvy",
+        "balance": "$50.50"
+      },
+      {
+        "id": 28,
+        "username": "VirtualWarrior",
+        "balance": "$175.00"
+      },
+      {
+        "id": 29,
+        "username": "DigitalNomad",
+        "balance": "$125.20"
+      },
+      {
+        "id": 30,
+        "username": "PixelPioneer",
+        "balance": "$300.40"
+      }
+    ]
+    };
+
+    class CustomAccountManager extends HTMLElement {
+        constructor() {
+            super();
+
+            // Creación de elementos
+            this._title = document.createElement('h1');
+            this._selectSubtitle = document.createElement('h4');
+            this._listButton = this._createButton('List');
+            this._createButtonElement = this._createButton('Create');
+            this._editButton = this._createButton('Edit');
+            this._deleteButton = this._createButton('Delete');
+            this._customSelector = document.createElement('select');
+            this._listTableSubtitle = document.createElement('h4');
+            this._dataTable = document.createElement('table');
+            this._setupTable();
+            this._addOptionToCustomSelector("Search by ID", "searchById");
+
+            // Configurar los textos de los elementos
+            this._title.innerText = 'Account management';
+            this._selectSubtitle.innerText = 'Select an action:';
+            this._listTableSubtitle.innerText = 'User List';
+
+            // Añadir los elementos a la interfaz
+            this._appendChildren([
+                this._title,
+                this._selectSubtitle,
+                this._listButton,
+                this._createButtonElement,
+                this._editButton,
+                this._deleteButton,
+                this._customSelector,
+                this._listTableSubtitle,
+                this._dataTable
+            ]);
+        }
+
+        // Función para crear botones
+        _createButton(text) {
+            const button = document.createElement('button');
+            button.innerText = text;
+            return button;
+        }
+
+        _createSelect(){
+            const select = document.createElement('select')
+            select.innerText = text;
+            return select;
+        }
+
+        // Función para crear opciones
+        _addOptionToCustomSelector(text, value) {
+            const option = document.createElement('option');
+            option.innerText = text;
+            option.value = value;
+            this._customSelector.appendChild(option);
+        }
+
+        // Función para crear opciones
+        _createOption(text, value) {
+            const option = document.createElement('option');
+            option.innerText = text;
+            option.value = value;
+            return option;
+        }
+
+        // Configura la tabla con las columnas
+        _setupTable() {
+            const headerRow = this._dataTable.createTHead().insertRow();
+            headerRow.innerHTML = '<th class="column">ID</th><th class="column">Username</th><th class="column">Balance</th>';
+        }
+
+        // Añade hijos al componente
+        _appendChildren(children) {
+            children.forEach(child => this.appendChild(child));
+        }
+
+        // Función para el botón Crear
+        onCreateButtonClick(event) {
+            let _id = prompt('Enter ID:');
+
+            // Verificar si se ha ingresado un ID válido
+            if (_id) {
+                // Verificar si el ID ya existe en la lista de cuentas
+                if (cuentasData.cuentas.some(account => account.id === parseInt(_id))) {
+                    console.log(`Account with ID ${_id} already exists. Please enter a different ID.`);
+                } else {
+                    let _username = prompt('Enter username:');
+                    let _balance = prompt('Enter balance:');
+
+                    // Verificar si se han ingresado todos los campos
+                    if (_username && _balance) {
+                        // Agregar la nueva cuenta al conjunto de datos JSON
+                        this._addAccount(_id, _username, _balance);
+                        console.log("New account added:", { id: _id, username: _username, balance: _balance });
+                    } else {
+                        alert("Please fill in all fields.");
+                    }
+                }
+            } else {
+                console.log("Invalid ID entered.");
+            }
+        }
+
+        // Método para agregar una nueva cuenta al conjunto de datos JSON
+        _addAccount(id, username, balance) {
+            let newData = {
+                id: parseInt(id),
+                username: username,
+                balance: parseInt(balance)
+            };
+
+            cuentasData.cuentas.push(newData);
+        }
+
+        // Método para llenar la tabla con los datos de cuentas
+        onListButtonClick() {
+            // Limpiar la tabla
+            this._dataTable.innerHTML = '';
+            const headerRow = this._dataTable.createTHead().insertRow();
+            headerRow.innerHTML = '<th class="column">ID</th><th class="column">Username</th><th class="column">Balance</th>';
+
+            // Llenar la tabla con los datos de cuentas
+            cuentasData.cuentas.forEach(cuenta => {
+                const row = this._dataTable.insertRow();
+                row.innerHTML = `<td>${cuenta.id}</td><td>${cuenta.username}</td><td>${cuenta.balance}</td>`;
+            });
+        }
+
+        // Función para el botón Editar
+        onEditButtonClick(event) {
+            let _id = prompt('Enter the ID of the account you want to edit:');
+
+            let accountToEdit = cuentasData.cuentas.find(account => account.id === parseInt(_id));
+            if (accountToEdit) {
+                let _Newusername = prompt('Enter the new username:');
+                let _Newbalance = prompt('Enter the new balance:');
+
+                // Actualizar la cuenta en el conjunto de datos JSON
+                this._updateAccount(accountToEdit, _Newusername, _Newbalance);
+
+                // Actualizar la visualización de la tabla
+                this.onListButtonClick();
+            } else {
+                console.log(`Account with ID ${_id} not found.`);
+            }
+        }
+
+        // Método para actualizar una cuenta en el conjunto de datos JSON
+        _updateAccount(account, newUsername, newBalance) {
+            account.username = newUsername;
+            account.balance = parseInt(newBalance);
+        }
+
+        // Función para el botón Eliminar
+        onDeleteButtonClick() {
+            let _id = prompt('Enter the ID of the account you want to delete:');
+
+            let accountToDeleteIndex = cuentasData.cuentas.findIndex(account => account.id === parseInt(_id));
+            if (accountToDeleteIndex !== -1) {
+                // Eliminar la cuenta del conjunto de datos JSON
+                cuentasData.cuentas.splice(accountToDeleteIndex, 1);
+
+                // Actualizar la visualización de la tabla
+                this.onListButtonClick();
+            } else {
+                console.log(`Account with ID ${_id} not found.`);
+            }
+        }
+
+        // Método para obtener una cuenta por ID
+        onSearchButtonClick() {
+            let _id = prompt('Enter the ID of the account you want to find:');
+
+            let accountToFind = cuentasData.cuentas.find(account => account.id === parseInt(_id));
+            if (accountToFind !== -1) {
+                let { id, username, balance } = accountToFind;
+                alert(`Account found:\nID: ${id}\nUsername: ${username}\nBalance: ${balance}`);
+                console.log(`Account data:`, accountToFind);
+            } else {
+                console.log(`Account with ID ${_id} not found.`);
+            }
+        }
+
+        onCustomSelectorClick(event) {
+            if (event.target.value === "searchById") {
+                this.onSearchButtonClick();
+            }
+        }
+
+        // Método que se ejecuta cuando se conecta el componente
+        connectedCallback() {
+            this._createButtonElement.onclick = this.onCreateButtonClick.bind(this);
+            this._editButton.onclick = this.onEditButtonClick.bind(this);
+            this._deleteButton.onclick = this.onDeleteButtonClick.bind(this);
+            this._listButton.onclick = this.onListButtonClick.bind(this);
+            this._customSelector.onclick = this.onCustomSelectorClick.bind(this);
+        }
+
+        disconnectedCallback() { }
+
+        adoptedCallback() { }
+
+        attributeChangedCallback(oldValue, newValue) { }
+
+        static observableAttributes() {
+            return [];
+        }
+    }
+
+    // Define el nuevo elemento personalizado
+    customElements.define('x-crud-wc', CustomAccountManager);
+
+    // Crea una instancia del componente y lo agrega al cuerpo del documento
+    let crudUIObject = new CustomAccountManager();
+    document.body.appendChild(crudUIObject);
+</script>
+
+</html>

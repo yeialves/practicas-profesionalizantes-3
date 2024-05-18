@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Introduction to WebComponents</title>
+    <style>
+        table,
+        td,
+        th,
+        tr {
+            border: 2px solid black;
+            border-collapse: collapse;
+        }
+
+        td,
+        th {
+            padding: 10px;
+            text-align: center;
+            max-width: 200px;
+        }
+
+        .column {
+            font-weight: bolder;
+        }
+    </style>
+</head>
+
+<body>
+
+</body>
+
+<script>
+
+    class CustomAccountManager extends HTMLElement {
+        constructor() {
+            super();
+
+            // Creación de elementos
+            this._title = document.createElement('h1');
+            this._selectSubtitle = document.createElement('h4');
+            this._listButton = this._createButton('List');
+            this._createButtonElement = this._createButton('Create');
+            this._editButton = this._createButton('Edit');
+            this._deleteButton = this._createButton('Delete');
+            this._customSelector = document.createElement('select');
+            this._listTableSubtitle = document.createElement('h4');
+            this._dataTable = document.createElement('table');
+            this._setupTable();
+
+            // Configurar los textos de los elementos
+            this._title.innerText = 'Account management';
+            this._selectSubtitle.innerText = 'Select an action:';
+            this._listTableSubtitle.innerText = 'User List';
+
+            // Añadir los elementos a la interfaz
+            this._appendChildren([
+                this._title,
+                this._selectSubtitle,
+                this._listButton,
+                this._createButtonElement,
+                this._editButton,
+                this._deleteButton,
+                this._customSelector,
+                this._listTableSubtitle,
+                this._dataTable
+            ]);
+        }
+
+        // Función para crear botones
+        _createButton(text) {
+            const button = document.createElement('button');
+            button.innerText = text;
+            return button;
+        }
+
+        _createSelect(){
+            const select = document.createElement('select')
+            select.innerText = text;
+            return select;
+        }
+
+        // Función para crear opciones
+        _addOptionToCustomSelector(text, value) {
+            const option = document.createElement('option');
+            option.innerText = text;
+            option.value = value;
+            this._customSelector.appendChild(option);
+        }
+
+        // Función para crear opciones
+        _createOption(text, value) {
+            const option = document.createElement('option');
+            option.innerText = text;
+            option.value = value;
+            return option;
+        }
+
+        // Configura la tabla con las columnas
+        _setupTable() {
+            const headerRow = this._dataTable.createTHead().insertRow();
+            headerRow.innerHTML = '<th class="column">ID</th><th class="column">Username</th><th class="column">Balance</th>';
+        }
+
+        // Añade hijos al componente
+        _appendChildren(children) {
+            children.forEach(child => this.appendChild(child));
+        }
+
+        // Función para el botón Crear
+        onCreateButtonClick(event) {
+            let _id = prompt('Enter ID:');
+            let _username = prompt('Enter username:');
+            let _balance = prompt('Enter balance:');
+
+            // Agregar la nueva cuenta al conjunto de datos JSON
+            this._addAccount(_id, _username, _balance);
+
+            // Actualizar la visualización de la tabla
+            this.onListButtonClick();
+        }
+
+                // Método para agregar una nueva cuenta al conjunto de datos JSON
+        _addAccount(id, username, balance) {
+            let newData = {
+                id: parseInt(id),
+                username: username,
+                balance: parseInt(balance)
+            };
+        }
+
+        // Método para llenar la tabla con los datos de cuentas
+        onListButtonClick() {
+            // Limpiar la tabla
+            this._dataTable.innerHTML = '';
+            const headerRow = this._dataTable.createTHead().insertRow();
+            headerRow.innerHTML = '<th class="column">ID</th><th class="column">Username</th><th class="column">Balance</th>';
+
+            // Obtener los datos de cuentas desde cuentas.json
+            fetch('cuentas.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al obtener los datos de cuentas.');
+                    }
+                    return response.json();
+                })
+                .then(cuentasData => {
+                    // Llenar la tabla con los datos de cuentas
+                    cuentasData.cuentas.forEach(cuenta => {
+                        const row = this._dataTable.insertRow();
+                        row.innerHTML = `<td>${cuenta.id}</td><td>${cuenta.username}</td><td>${cuenta.balance}</td>`;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Función para el botón Crear
+        onCreateButtonClick(event) {
+            let _id = prompt('Enter ID:');
+
+            // Verificar si se ha ingresado un ID válido
+            if (_id) {
+                // Obtener la lista actual de cuentas desde el JSON
+                fetch('cuentas.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error al obtener los datos de cuentas.');
+                        }
+                        return response.json();
+                    })
+                    .then(cuentasData => {
+                        // Verificar si el ID ya existe en la lista de cuentas
+                        if (cuentasData.cuentas.some(account => account.id === parseInt(_id))) {
+                            console.log(`Account with ID ${_id} already exists. Please enter a different ID.`);
+                        } else {
+                            let _username = prompt('Enter username:');
+                            let _balance = prompt('Enter balance:');
+
+                            // Verificar si se han ingresado todos los campos
+                            if (_username && _balance) {
+                                // Agregar la nueva cuenta al conjunto de datos JSON
+                                this._addAccount(_id, _username, _balance);
+                                console.log("New account added:", { id: _id, username: _username, balance: _balance });
+                            } else {
+                                alert("Please fill in all fields.");
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                console.log("Invalid ID entered.");
+            }
+        }
+
+
+        // Función para el botón Editar
+        onEditButtonClick(event) {
+            let _id = prompt('Enter the ID of the account you want to edit:');
+
+            // Verificar si se ha ingresado un ID válido
+            if (_id) {
+                // Obtener la cuenta a editar
+                fetch('cuentas.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error al obtener los datos de cuentas.');
+                        }
+                        return response.json();
+                    })
+                    .then(cuentasData => {
+                        let accountToEdit = cuentasData.cuentas.find(account => account.id === parseInt(_id));
+                        if (accountToEdit) {
+                            let _Newusername = prompt('Enter the new username:');
+                            let _Newbalance = prompt('Enter the new balance:');
+
+                            // Copia de seguridad de los datos antiguos
+                            let oldData = { ...accountToEdit };
+
+                            // Actualizar los datos de la cuenta
+                            accountToEdit.username = _Newusername;
+                            accountToEdit.balance = parseFloat(_Newbalance);
+
+                            // Imprimir la versión "anterior" y la "actualizada" del mismo
+                            console.log("Old data:", oldData);
+                            console.log("Updated data:", accountToEdit);
+                        } else {
+                            console.log(`Account with ID ${_id} not found.`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                console.log("Invalid ID entered.");
+            }
+        }
+
+        // Función para el botón Eliminar
+        onDeleteButtonClick() {
+            let _id = prompt('Enter the ID of the account you want to delete:');
+
+            // Verificar si se ha ingresado un ID válido
+            if (_id) {
+                // Obtener la cuenta a eliminar
+                fetch('cuentas.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error al obtener los datos de cuentas.');
+                        }
+                        return response.json();
+                    })
+                    .then(cuentasData => {
+                        let accountToDeleteIndex = cuentasData.cuentas.findIndex(account => account.id === parseInt(_id));
+                        if (accountToDeleteIndex !== -1) {
+                            let deletedAccount = cuentasData.cuentas.splice(accountToDeleteIndex, 1)[0];
+                            console.log("Deleted account:", deletedAccount);
+                        } else {
+                            console.log(`Account with ID ${_id} not found.`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                console.log("Invalid ID entered.");
+            }
+        }
+
+        // Método que se ejecuta cuando se conecta el componente
+        connectedCallback() {
+            this._createButtonElement.onclick = this.onCreateButtonClick.bind(this);
+            this._editButton.onclick = this.onEditButtonClick.bind(this);
+            this._deleteButton.onclick = this.onDeleteButtonClick.bind(this);
+            this._listButton.onclick = this.onListButtonClick.bind(this);
+
+        }
+
+        disconnectedCallback() { }
+
+        adoptedCallback() { }
+
+        attributeChangedCallback(oldValue, newValue) { }
+
+        static observableAttributes() {
+            return [];
+        }
+    }
+
+    // Define el nuevo elemento personalizado
+    customElements.define('x-crud-wc', CustomAccountManager);
+
+    // Crea una instancia del componente y lo agrega al cuerpo del documento
+    let crudUIObject = new CustomAccountManager();
+    document.body.appendChild(crudUIObject);
+</script>
+
+</html>
