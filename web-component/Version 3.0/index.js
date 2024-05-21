@@ -44,8 +44,7 @@ app.get('/insertCuentas', (req, res) => {
 app.post('/addUser', (req, res) => {
     const { username, balance } = req.body;
       // Verificar si el nombre de usuario ya existe en la base de datos
-    connection.query("SELECT * FROM User WHERE username = ?", [username], (checkError, checkResults) => {
-        if (checkError) return res.status(500).json({ error: "Internal server error" });
+    connection.query("SELECT * FROM User WHERE username = ?", [username], (checkResults) => {
         if (checkResults.length > 0) return res.status(400).json({ error: "Username already exists" });
         connection.query("INSERT INTO User (username, balance) VALUES (?, ?)", [username, balance], (insertError, insertResults) => {
             if (insertError) return res.status(500).json({ error: "Internal server error" });
@@ -58,7 +57,7 @@ app.post('/addUser', (req, res) => {
 app.put('/editUser/:id', (req, res) => {
     const id = req.params.id;
     const { username, balance } = req.body;
-    connection.query("SELECT * FROM User WHERE id = ?", [id], (checkError, checkResults) => {
+    connection.query("SELECT * FROM User WHERE id = ?", [id], (checkResults) => {
         if (checkResults.length === 0) return res.status(404).json({ error: "Account not found" });
         // Actualizar la información del usuario en la base de datos
         connection.query("UPDATE User SET username = ?, balance = ? WHERE id = ?", [username, balance, id], (updateError, updateResults) => {
@@ -71,7 +70,7 @@ app.put('/editUser/:id', (req, res) => {
 // Eliminar User de la base de datos
 app.delete('/deleteUser/:id', (req, res) => {
     const id = req.params.id;
-    connection.query("SELECT * FROM User WHERE id = ?", [id], (checkError, checkResults) => {
+    connection.query("SELECT * FROM User WHERE id = ?", [id], (checkResults) => {
         if (checkResults.length === 0) return res.status(404).json({ error: "Account not found" });
         connection.query("DELETE FROM User WHERE id = ?", [id], (deleteError, deleteResults) => {
             if (deleteError) return res.status(500).json({ error: "Internal server error" });
@@ -84,8 +83,7 @@ app.delete('/deleteUser/:id', (req, res) => {
 app.get('/searchUser/:id', (req, res) => {
     const id = req.params.id;
     // Verificar si el ID de la cuenta existe en la base de datos
-    connection.query("SELECT id, username, balance FROM User WHERE id = ?", [id], (checkError, checkResults) => {
-        if (checkError) return res.status(500).json({ error: "Internal server error" });
+    connection.query("SELECT id, username, balance FROM User WHERE id = ?", [id], (checkResults) => {
         if (checkResults.length === 0) return res.status(404).json({ error: "Account not found" });
         const { id, username, balance } = checkResults[0];
         res.status(200).json({ id, username, balance });
