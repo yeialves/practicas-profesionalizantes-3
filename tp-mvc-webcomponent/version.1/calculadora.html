@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<!--
+	HTML/CSS/JS Calculator to MVC WebComponent Migration Exercise
+	Example code for ISFT151 for Educational Purposes
+	Prácticas Profesionalizantes III
+
+	Copyright 2021-2024 mgsantiago <mgsantiago@protonmail.com>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+	MA 02110-1301, USA.
+
+
+-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>MVC WebComponent Activity</title>
+</head>
+
+<style>
+
+.numButton
+{
+	background-color: #42a5f5;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	border-radius: 6px;
+	width: 100%;
+}
+
+.operatorButton
+{
+	background-color: #7dcea0;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	border-radius: 6px;
+	width: 100%;
+}
+
+.clearButton
+{
+	background-color: #e57373;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	width: 100%;
+	border-radius: 6px;
+}
+
+.calculateButton
+{
+	background-color: #f8c471;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	width: 100%;
+	border-radius: 6px;
+}
+
+.displayResult
+{
+	border-radius: 6px;
+}
+
+</style>
+
+<body>
+
+</body>
+  
+<script type="text/javascript">
+
+/// Clase controladora que conecta el modelo y la vista
+class wcCalculatorController {
+	constructor(viewComponent, modelComponent) {
+		// Asigna la vista y el modelo a variables internas
+		this._viewComponent = viewComponent;
+        this._modelComponent = modelComponent;
+	}
+
+	// Métodos para manejar los clics de los botones numéricos y de operaciones
+	onButton0Click() {   	
+		this._viewComponent.updateInput('0');	
+	}
+
+	onButton1Click() {   	
+		this._viewComponent.updateInput('1');	
+	}
+
+	onButton2Click() {   	
+		this._viewComponent.updateInput('2');	
+	}
+
+	onButton3Click() {   	
+		this._viewComponent.updateInput('3');	
+	}
+
+	onButton4Click() {   	
+		this._viewComponent.updateInput('4');	
+	}
+
+	onButton5Click() {   	
+		this._viewComponent.updateInput('5');	
+	}
+
+	onButton6Click() {   	
+		this._viewComponent.updateInput('6');	
+	}
+
+	onButton7Click() {   	
+		this._viewComponent.updateInput('7');	
+	}
+
+	onButton8Click() {   	
+		this._viewComponent.updateInput('8');	
+	}
+
+	onButton9Click() {   	
+		this._viewComponent.updateInput('9');	
+	}
+
+	onButtonDecimalPointClick() {   	
+		this._viewComponent.updateInput('.');	
+	}
+
+	onButtonMinusClick() {   	
+		this._viewComponent.updateInput('-');	
+	}
+
+	onButtonDivisionClick() {   	
+		this._viewComponent.updateInput('/');	
+	}
+
+	onButtonProductClick() {   	
+		this._viewComponent.updateInput('*');	
+	}
+
+	onButtonPlusClick() {   	
+		this._viewComponent.updateInput('+');	
+	}
+
+	onButtonClearClick() { 
+    	this._viewComponent.replaceInput('');
+	}
+
+	onButtonCalculateClick() {
+        const calculation = this._viewComponent.getInputValue(); 
+        const result = this._modelComponent.equation(calculation); 
+        this._viewComponent.replaceInput(result); 
+	}
+}
+
+// Clase modelo que maneja la lógica de cálculo
+class wcCalculatorModel {
+    constructor() {}
+
+    // Método para evaluar la ecuación y devolver el resultado
+    equation(calculation) {
+        try {
+            return eval(calculation); // Evalúa la ecuación
+        } catch (e) {
+            return 'Error'; // Devuelve 'Error' si hay una excepción
+        }
+    }
+}
+
+// Clase de vista que define el componente personalizado
+class wcCalculatorView extends HTMLElement {
+    constructor(modelComponent) {
+        super();
+        // Crea un controlador para manejar la lógica de la calculadora
+        this._innerControler = new wcCalculatorController(this, modelComponent);
+        this._table = document.createElement('table');
+
+        // Crea las filas y celdas de la tabla
+        this._firstRow = this._table.insertRow();
+        this._inputCell = this._firstRow.insertCell();
+        this._inputCell.setAttribute('colspan', 4);
+
+		this._secondRow = this._table.insertRow();
+        this._button7Cell = this._secondRow.insertCell();
+        this._button8Cell = this._secondRow.insertCell();
+        this._button9Cell = this._secondRow.insertCell();
+        this._buttonPlusCell = this._secondRow.insertCell();
+
+        this._thirdRow = this._table.insertRow();
+        this._button4Cell = this._thirdRow.insertCell();
+        this._button5Cell = this._thirdRow.insertCell();
+        this._button6Cell = this._thirdRow.insertCell();
+        this._buttonMinusCell = this._thirdRow.insertCell();
+
+        this._fourthRow = this._table.insertRow();
+        this._button1Cell = this._fourthRow.insertCell();
+        this._button2Cell = this._fourthRow.insertCell();
+        this._button3Cell = this._fourthRow.insertCell();
+        this._buttonProductCell = this._fourthRow.insertCell();
+
+        this._fifthRow = this._table.insertRow();
+        this._button0Cell = this._fifthRow.insertCell();
+        this._buttonDecimalCell = this._fifthRow.insertCell();
+        this._buttonCalculateCell = this._fifthRow.insertCell();
+        this._buttonDivideCell = this._fifthRow.insertCell();
+
+        this._sixthRow = this._table.insertRow();
+        this._buttonClearCell = this._sixthRow.insertCell();
+        this._buttonClearCell.setAttribute('colspan', 4);
+
+        // Crea el campo de entrada para mostrar el resultado
+        this._input = document.createElement('input');
+        this._input.className = 'displayResult';
+        this._input.id = 'display';
+        this._input.type = 'text';
+        this._input.setAttribute('disabled', true);
+
+        // Crea los botones de la calculadora
+        this._button0 = document.createElement('button');
+        this._button0.className = 'numButton';
+        this._button0.id = 'button0';
+        this._button0.innerText = '0';
+
+        this._button1 = document.createElement('button');
+        this._button1.className = 'numButton';
+        this._button1.id = 'button1';
+        this._button1.innerText = '1';
+
+        this._button2 = document.createElement('button');
+        this._button2.className = 'numButton';
+        this._button2.id = 'button2';
+        this._button2.innerText = '2';
+
+        this._button3 = document.createElement('button');
+        this._button3.className = 'numButton';
+        this._button3.id = 'button3';
+        this._button3.innerText = '3';
+
+        this._button4 = document.createElement('button');
+        this._button4.className = 'numButton';
+        this._button4.id = 'button4';
+        this._button4.innerText = '4';
+
+        this._button5 = document.createElement('button');
+        this._button5.className = 'numButton';
+        this._button5.id = 'button5';
+        this._button5.innerText = '5';
+
+        this._button6 = document.createElement('button');
+        this._button6.className = 'numButton';
+        this._button6.id = 'button6';
+        this._button6.innerText = '6';
+
+        this._button7 = document.createElement('button');
+        this._button7.className = 'numButton';
+        this._button7.id = 'button7';
+        this._button7.innerText = '7';
+
+        this._button8 = document.createElement('button');
+        this._button8.className = 'numButton';
+        this._button8.id = 'button8';
+        this._button8.innerText = '8';
+
+        this._button9 = document.createElement('button');
+        this._button9.className = 'numButton';
+        this._button9.id = 'button9';
+        this._button9.innerText = '9';
+
+        this._buttonDecimalPoint = document.createElement('button');
+        this._buttonDecimalPoint.className = 'numButton';
+        this._buttonDecimalPoint.id = 'buttonDecimalPoint';
+        this._buttonDecimalPoint.innerText = '.';
+
+        this._buttonPlus = document.createElement('button');
+        this._buttonPlus.className = 'operatorButton';
+        this._buttonPlus.innerText = '+';
+        this._buttonPlus.id = 'buttonPlus';
+
+        this._buttonMinus = document.createElement('button');
+        this._buttonMinus.className = 'operatorButton';
+        this._buttonMinus.innerText = '-';
+        this._buttonMinus.id = 'buttonMinus';
+
+        this._buttonProduct = document.createElement('button');
+        this._buttonProduct.className = 'operatorButton';
+        this._buttonProduct.innerText = '*';
+        this._buttonProduct.id = 'buttonProduct';
+
+        this._buttonDivide = document.createElement('button');
+        this._buttonDivide.className = 'operatorButton';
+        this._buttonDivide.innerText = '/';
+        this._buttonDivide.id = 'buttonDivision';
+
+        this._buttonCalculate = document.createElement('button');
+        this._buttonCalculate.className = 'operatorButton';
+        this._buttonCalculate.innerText = '=';
+        this._buttonCalculate.id = 'buttonCalculate';
+
+        this._buttonClear = document.createElement('button');
+        this._buttonClear.className = 'clearButton';
+        this._buttonClear.id = 'buttonClear';
+        this._buttonClear.innerText = 'Delete';
+    }
+
+	// Método llamado cuando el componente se conecta al DOM
+	connectedCallback() {
+		this.appendChild(this._table);
+
+		this._inputCell.appendChild(this._input);
+
+		this._button0Cell.appendChild(this._button0);
+		this._button1Cell.appendChild(this._button1);
+		this._button2Cell.appendChild(this._button2);
+		this._button3Cell.appendChild(this._button3);
+		this._button4Cell.appendChild(this._button4);
+		this._button5Cell.appendChild(this._button5);
+		this._button6Cell.appendChild(this._button6);
+		this._button7Cell.appendChild(this._button7);
+		this._button8Cell.appendChild(this._button8);
+		this._button9Cell.appendChild(this._button9);
+
+		this._buttonDecimalCell.appendChild(this._buttonDecimalPoint);
+		this._buttonPlusCell.appendChild(this._buttonPlus);
+		this._buttonMinusCell.appendChild(this._buttonMinus);
+		this._buttonProductCell.appendChild(this._buttonProduct);
+		this._buttonDivideCell.appendChild(this._buttonDivide);
+		this._buttonCalculateCell.appendChild(this._buttonCalculate);
+		this._buttonClearCell.appendChild(this._buttonClear);
+
+		// Asigna eventos de clic a los botones
+		this._button0.onclick = function() { this._innerControler.onButton0Click(); }.bind(this);
+		this._button1.onclick = function() { this._innerControler.onButton1Click(); }.bind(this);
+		this._button2.onclick = function() { this._innerControler.onButton2Click(); }.bind(this);
+		this._button3.onclick = function() { this._innerControler.onButton3Click(); }.bind(this);
+		this._button4.onclick = function() { this._innerControler.onButton4Click(); }.bind(this);
+		this._button5.onclick = function() { this._innerControler.onButton5Click(); }.bind(this);
+		this._button6.onclick = function() { this._innerControler.onButton6Click(); }.bind(this);
+		this._button7.onclick = function() { this._innerControler.onButton7Click(); }.bind(this);
+		this._button8.onclick = function() { this._innerControler.onButton8Click(); }.bind(this);
+		this._button9.onclick = function() { this._innerControler.onButton9Click(); }.bind(this);
+
+		this._buttonDecimalPoint.onclick = function() { this._innerControler.onButtonDecimalPointClick(); }.bind(this);
+		this._buttonPlus.onclick = function() { this._innerControler.onButtonPlusClick(); }.bind(this);
+		this._buttonMinus.onclick = function() { this._innerControler.onButtonMinusClick(); }.bind(this);
+		this._buttonProduct.onclick = function() { this._innerControler.onButtonProductClick(); }.bind(this);
+		this._buttonDivide.onclick = function() { this._innerControler.onButtonDivisionClick(); }.bind(this);
+		this._buttonCalculate.onclick = function() { this._innerControler.onButtonCalculateClick(); }.bind(this);
+		this._buttonClear.onclick = function() { this._innerControler.onButtonClearClick(); }.bind(this);
+	}
+
+	// Actualiza el campo de entrada añadiendo los datos
+	updateInput(data) {
+        this._input.value += data;
+    }
+
+    // Reemplaza el valor del campo de entrada con nuevos datos
+    replaceInput(data) {
+        this._input.value = data;
+    }
+
+    // Retorna el valor actual del campo de entrada
+    getInputValue() {
+        return this._input.value;
+    }
+
+    // Se llama cuando el componente se desconecta del DOM
+    disconnectedCallback() {
+        // Remueve los eventos de clic
+        this._button0.onclick = null;
+        this._button1.onclick = null;
+        this._button2.onclick = null;
+        this._button3.onclick = null;
+        this._button4.onclick = null;
+        this._button5.onclick = null;
+        this._button6.onclick = null;
+        this._button7.onclick = null;
+        this._button8.onclick = null;
+        this._button9.onclick = null;
+        this._buttonDecimalPoint.onclick = null;
+        this._buttonPlus.onclick = null;
+        this._buttonMinus.onclick = null;
+        this._buttonProduct.onclick = null;
+        this._buttonDivide.onclick = null;
+        this._buttonCalculate.onclick = null;
+        this._buttonClear.onclick = null;
+    }
+
+    // Métodos requeridos para el ciclo de vida del componente
+    adoptedCallback() {}
+    attributesChangedCallback(oldValue, newValue) {}
+    static get observableAttributes() { return []; }
+}
+
+// Define el componente personalizado
+customElements.define('x-wc-component-view', wcCalculatorView);
+
+// Función principal para inicializar el componente
+function main() {
+    const modelComponent = new wcCalculatorModel();
+    const viewComponent = new wcCalculatorView(modelComponent);
+    document.body.appendChild(viewComponent);
+}
+
+// Ejecuta la función principal cuando se carga la página
+window.onload = main;
+
+
+</script>
+</html>
