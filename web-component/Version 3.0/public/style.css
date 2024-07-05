@@ -1,0 +1,113 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Poppins', sans-serif;
+  color: rgb(214, 219, 223);
+}
+
+body {
+  background-color: rgb(46, 64, 83);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h4 {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-top: 20px;
+}
+
+.container {
+  text-align: center;
+  padding: 20px;
+}
+
+.button-container {
+  margin-bottom: 20px;
+}
+
+.table-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+table {
+  background-color: rgb(40, 55, 71);
+  border-collapse: collapse;
+  margin: 20px auto;
+  width: auto;
+}
+
+td, th {
+  border: 2px solid black;
+  padding: 10px 20px;
+  text-align: center;
+  width: 300px;
+}
+
+.column {
+  font-weight: bolder;
+}
+
+button {
+  background-color: rgb(40, 55, 71);
+  color: rgb(214, 219, 223);
+  padding: 10px 20px;
+  border: 1px solid rgb(214, 219, 223);
+  cursor: pointer;
+  margin: 10px;
+}
+
+select {
+  width: 130px;
+  height: 40px;
+  background-color:rgb(214, 219, 223);
+  border: 1px solid rgb(40, 55, 71); 
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+
+.alert-container {
+  position: absolute;
+  top: 20px; /* Ajusta la posición vertical según tus preferencias */
+  left: 20px; /* Ajusta la posición horizontal según tus preferencias */
+  z-index: 9999; /* Asegura que las alertas estén por encima de otros elementos */
+}
+
+.alert {
+  padding: 30px;
+  margin-bottom: 50px;
+  border-radius: 5px;
+  color: #fff;
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto 10px auto;
+}
+
+.alert-info {
+  background-color: #2196F3; 
+}
+
+
+.alert-success {
+  background-color: #4CAF50; 
+}
+
+.alert-warning {
+  background-color: #ff9800; 
+}
+
+.alert-error {
+  background-color: #f44336; 
+}
+
