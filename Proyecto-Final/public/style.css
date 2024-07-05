@@ -1,0 +1,36 @@
+#game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    background-color: #87ceeb; /* Un color de fondo simple */
+}
+
+@keyframes play-animation {
+    from { background-position: 0px; }
+    to { background-position: -256px; } /* -64px * número de frames */
+}
+
+.character {
+    width: 64px;
+    height: 64px;
+    background-repeat: no-repeat;
+    animation: play-animation 1s steps(4) infinite;
+    position: absolute;
+    transition: transform 0.2s linear;
+}
+
+.walk-right {
+    background-image: url("assets/Felix-Walk-Right-Sheet-64x64.png");
+}
+
+.walk-left {
+    background-image: url("assets/Felix-Walk-Left-Sheet-64x64.png");
+}
+
+.walk-front {
+    background-image: url("assets/Felix-Walk-Up-Sheet-64x64.png");
+}
+
+.walk-back {
+    background-image: url("assets/Felix-Walk-Down-Sheet-64x64.png");
+}
