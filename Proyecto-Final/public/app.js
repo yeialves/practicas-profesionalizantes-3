@@ -1,119 +1,197 @@
-class AnimatedCharacter extends HTMLElement {
+class CharacterView extends HTMLElement {
+    constructor(drawingContext) {
+        super();
+        this.drawingContext = drawingContext;
+        this.currentState = null;
+    }
+
+    set state(newState) {
+        this.currentState = newState;
+        this.update();
+    }
+
+    get state() {
+        return this.currentState;
+    }
+
+    update() {
+        this.drawingContext.clearRect(0, 0, this.drawingContext.canvas.width, this.drawingContext.canvas.height);
+        
+        // Redibujar el mapa antes de dibujar el personaje
+        if (this.mapData) {
+            this.drawMap(this.mapData, this.drawingContext, 64);  
+        }
+
+        const img = new Image();
+        img.src = this.state.sprite;
+        this.drawingContext.drawImage(
+            img,
+            this.state.frame * 64, 0, 64, 64,
+            this.state.position_x, this.state.position_y, 64, 64 // Dibujar el personaje en la posición correcta
+        );
+    }
+
+    drawMap(mapData, context, tileSize) {
+        const layers = mapData.layers;
+        const width = mapData.width;
+        const height = mapData.height;
+        const tilesetImage = document.getElementById('tiles');
+        const tilesetWidth = tilesetImage.width / tileSize; // Calcular cuántos tiles caben en el ancho del tileset
+        
+        layers.forEach(layer => {
+            if (layer.type === 'tilelayer') {
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const tileIndex = layer.data[y * width + x];
+                        if (tileIndex > 0) {
+                             // Calcula la posición del tile dentro del conjunto de tiles 
+                            const tileX = (tileIndex - 1) % tilesetWidth;
+                            const tileY = Math.floor((tileIndex - 1) / tilesetWidth);
+                            
+                             // Dibuja el tile en la posición correcta del canvas.
+                            context.drawImage(
+                                tilesetImage, 
+                                tileX * tileSize, tileY * tileSize, tileSize, tileSize,
+                                x * tileSize, y * tileSize, tileSize, tileSize
+                            );
+                        }
+                    }
+                }
+            }
+        });
+    }    
+    
+}
+
+customElements.define('character-view', CharacterView);
+
+
+class CharacterModel extends EventTarget {
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
-
-        // Crear un estilo para el shadow DOM
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes play-animation {
-                from { background-position: 0px; }
-                to { background-position: -256px; } /* -64px * número de frames */
-            }
-
-            .character {
-                width: 64px;
-                height: 64px;
-                background-repeat: no-repeat;
-                animation: play-animation 1s steps(4) infinite;
-                position: absolute;
-                transition: transform 0.2s linear;
-            }
-
-            .walk-right {
-                background-image: url("assets/Felix-Walk-Right-Sheet-64x64.png");
-            }
-
-            .walk-left {
-                background-image: url("assets/Felix-Walk-Left-Sheet-64x64.png");
-            }
-
-            .walk-front {
-                background-image: url("assets/Felix-Walk-Front-Sheet-64x64.png");
-            }
-
-            .walk-back {
-                background-image: url("assets/Felix-Walk-Back-Sheet-64x64.png");
-            }
-        `;
-
-        // Crear el contenedor del personaje
-        this.container = document.createElement('div');
-        this.container.classList.add('character');
-
-        // Adjuntar el estilo y el contenedor al shadow DOM
-        this.shadowRoot.append(style, this.container);
-
-        this.x = 0;
-        this.y = 0;
+        this.state = {
+            width: 64,
+            height: 64,
+            position_x: 0,
+            position_y: 0,
+            frame: 0,
+            speed: 3,
+        };
         this.targetX = 0;
         this.targetY = 0;
-        this.speed = 2; // Velocidad de movimiento
         this.isMoving = false;
-
-        // Escuchar eventos de clic para movimiento
-        document.getElementById('game-container').addEventListener('click', this.setTargetPosition.bind(this));
-
-        // Iniciar el loop de animación
-        this.animate();
     }
 
-    // Establecer la posición objetivo al hacer clic
-    setTargetPosition(event) {
-        const rect = document.getElementById('game-container').getBoundingClientRect();
-        this.targetX = event.clientX - rect.left - 32; // Ajuste para centrar el personaje
-        this.targetY = event.clientY - rect.top - 32;  // Ajuste para centrar el personaje
+    setTargetPosition(x, y) {
+        this.targetX = x;
+        this.targetY = y;
         this.isMoving = true;
-
-        // Actualizar la clase de animación según la dirección
-        const dx = this.targetX - this.x;
-        const dy = this.targetY - this.y;
-        if (Math.abs(dx) > Math.abs(dy)) {
-            // Movimiento horizontal
-            if (dx > 0) {
-                this.setAnimationClass('walk-right');
-            } else {
-                this.setAnimationClass('walk-left');
-            }
-        } else {
-            // Movimiento vertical
-            if (dy > 0) {
-                this.setAnimationClass('walk-front');
-            } else {
-                this.setAnimationClass('walk-back');
-            }
-        }
     }
 
-    // Método para establecer la clase de animación
-    setAnimationClass(className) {
-        this.container.className = 'character ' + className;
-    }
+    updatePosition() {
+		if (this.isMoving) {
+			const dx = this.targetX - this.state.position_x;
+			const dy = this.targetY - this.state.position_y;
+			const distance = Math.sqrt(dx * dx + dy * dy);
+	
+			// Determinar la dirección del movimiento
+			if (Math.abs(dx) > Math.abs(dy)) {
+				// Movimiento horizontal
+				if (dx > 0) {
+					this.state.sprite = 'assets/Felix-Walk-Right-Sheet-64x64.png';
+				} else {
+					this.state.sprite = 'assets/Felix-Walk-Left-Sheet-64x64.png';
+				}
+			} else {
+				// Movimiento vertical
+				if (dy > 0) {
+					this.state.sprite = 'assets/Felix-Walk-Front-Sheet-64x64.png';
+				} else {
+					this.state.sprite = 'assets/Felix-Walk-Back-Sheet-64x64.png';
+				}
+			}
+	
+			if (distance < this.state.speed) {
+				this.state.position_x = this.targetX;
+				this.state.position_y = this.targetY;
+				this.isMoving = false;
+			} else {
+				this.state.position_x += (dx / distance) * this.state.speed;
+				this.state.position_y += (dy / distance) * this.state.speed;
+			}
+	
+			// Cambiar frame para la animación
+			this.frameCounter = (this.frameCounter || 0) + 1;
+			if (this.frameCounter % 10 === 0) { 
+				this.state.frame = (this.state.frame + 1) % 4;
+			}
+	
+			this.dispatchEvent(new CustomEvent('positionchanged'));
+		}
+	}
 
-    // Animar el movimiento del personaje
-    animate() {
-        if (this.isMoving) {
-            const dx = this.targetX - this.x;
-            const dy = this.targetY - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < this.speed) {
-                this.x = this.targetX;
-                this.y = this.targetY;
-                this.isMoving = false;
-            } else {
-                this.x += (dx / distance) * this.speed;
-                this.y += (dy / distance) * this.speed;
-            }
-
-            this.container.style.transform = `translate(${this.x}px, ${this.y}px)`;
+    async loadMap(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Failed to load map: ' + response.statusText);
         }
-
-        requestAnimationFrame(this.animate.bind(this));
+        const mapData = await response.json();
+        return mapData;
     }
 }
 
-customElements.define('animated-character', AnimatedCharacter);
+class CharacterController {
+    constructor(model, view) {
+        this.model = model;
+        this.view = view;
+        this.model.addEventListener('positionchanged', () => this.updateView());
+    }
 
-// Agregar el personaje animado al contenedor del juego
-document.getElementById('game-container').appendChild(document.createElement('animated-character'));
+    connect() {
+        document.getElementById('game-container').addEventListener('click', (event) => {
+            const rect = document.getElementById('game-container').getBoundingClientRect();
+            const targetX = event.clientX - rect.left - 32;
+            const targetY = event.clientY - rect.top - 32;
+            this.model.setTargetPosition(targetX, targetY);
+        });
+
+        this.animate();
+    }
+
+    updateView() {
+        this.view.state = this.model.state;
+    }
+
+    animate() {
+        this.model.updatePosition();
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
+async function main() {
+    let canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.border = "1px solid black";
+
+    document.getElementById('game-container').appendChild(canvas);
+    
+    const context = canvas.getContext('2d');
+    
+    let characterModel = new CharacterModel();
+    let characterView = new CharacterView(context);
+    let characterController = new CharacterController(characterModel, characterView);
+
+    try {
+        const mapData = await characterModel.loadMap('mapa.tmj'); 
+        const tileSize = 64; 
+        characterView.mapData = mapData; 
+        characterView.drawMap(mapData, context, tileSize);
+    } catch (error) {
+        console.error('Error loading map:', error);
+    }
+
+    characterController.connect();
+}
+
+window.onload = main;
