@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<!--
+	HTML/CSS/JS Calculator to MVC WebComponent Migration Exercise
+	Example code for ISFT151 for Educational Purposes
+	Prácticas Profesionalizantes III
+
+	Copyright 2021-2024 mgsantiago <mgsantiago@protonmail.com>
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+	MA 02110-1301, USA.
+
+
+-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>MVC WebComponent Activity</title>
+</head>
+
+<style>
+
+.numberButton
+{
+	background-color: #42a5f5;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	border-radius: 6px;
+	width: 100%;
+}
+
+.operatorButton
+{
+	background-color: #7dcea0;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	border-radius: 6px;
+	width: 100%;
+}
+
+.clearButton
+{
+	background-color: #e57373;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	width: 100%;
+	border-radius: 6px;
+}
+
+.calculateButton
+{
+	background-color: #f8c471;
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+	width: 100%;
+	border-radius: 6px;
+}
+
+.displayResult
+{
+	border-radius: 6px;
+}
+
+</style>
+
+<body>
+	<table>
+		<tr>
+			<td colspan="4"> 
+				<input class="displayResult" id="display" type="text" value="" disabled></input> 
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<button id="button7" class="numberButton">7</button>
+			</td>
+			<td>
+				<button id="button8" class="numberButton">8</button>
+			</td>
+			<td>
+				<button id="button9" class="numberButton">9</button>
+			</td>
+			<td>
+				<button id="buttonPlus" class="operatorButton">+</button>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<button id="button4" class="numberButton">4</button>
+			</td>
+			<td>
+				<button id="button5" class="numberButton">5</button>
+			</td>
+			<td>
+				<button id="button6" class="numberButton">6</button>
+			</td>
+			<td>
+				<button id="buttonMinus" class="operatorButton">-</button>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<button id="button3" class="numberButton">3</button>
+			</td>
+			<td>
+				<button id="button2" class="numberButton">2</button>
+			</td>
+			<td>
+				<button id="button1" class="numberButton">1</button>
+			</td>
+			<td>
+				<button id="buttonProduct" class="operatorButton">x</button>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<button id="button0" class="numberButton">0</button>
+			</td>
+			<td>
+				<button id="buttonDecimalPoint" class="numberButton">.</button>
+			</td>
+			<td>
+				<button id="buttonCalculate" class="calculateButton">=</button>
+			</td>
+			<td>
+				<button id="buttonDivision"class="operatorButton">/</button>
+			</td>
+		</tr>
+			
+		<tr>
+			<td colspan="4">
+			  	<button id="buttonClear" class="clearButton">BORRAR</button>
+			</td>
+		</tr>
+	 </table>
+</body>
+  
+<script type="text/javascript">
+	
+	let display = document.getElementById("display");
+	let button0 = document.getElementById("button0");
+	let button1 = document.getElementById("button1");
+	let button2 = document.getElementById("button2");
+	let button3 = document.getElementById("button3");
+	let button4 = document.getElementById("button4");
+	let button5 = document.getElementById("button5");
+	let button6 = document.getElementById("button6");
+	let button7 = document.getElementById("button7");
+	let button8 = document.getElementById("button8");
+	let button9 = document.getElementById("button9");
+	let buttonDecimalPoint = document.getElementById("buttonDecimalPoint");
+	let buttonMinus = document.getElementById("buttonMinus");
+	let buttonDivision = document.getElementById("buttonDivision");
+	let buttonProduct = document.getElementById("buttonProduct");
+	let buttonPlus = document.getElementById("buttonPlus");
+	let buttonClear = document.getElementById("buttonClear");
+	let buttonCalculate = document.getElementById("buttonCalculate");
+	
+	function onButton0Click()
+	{   	
+		display.value += '0';
+	}
+	
+	function onButton1Click()
+	{   	
+		display.value += '1';
+	}
+	
+	function onButton2Click()
+	{   	
+		display.value += '2';
+	}
+	
+	function onButton3Click()
+	{   	
+		display.value += '3';
+	}
+	
+	function onButton4Click()
+	{   	
+		display.value += '4';
+	}
+	
+	function onButton5Click()
+	{   	
+		display.value += '5';
+	}
+	
+	function onButton6Click()
+	{   	
+		display.value += '6';
+	}
+	
+	function onButton7Click()
+	{   	
+		display.value += '7';
+	}
+	
+	function onButton8Click()
+	{   	
+		display.value += '8';
+	}
+	
+	function onButton9Click()
+	{   	
+		display.value += '9';
+	}
+	
+	function onbuttonDecimalPointClick()
+	{   	
+		display.value += '.';
+	}
+	
+	function onbuttonMinusClick()
+	{   	
+		display.value += '-';
+	}
+	
+	function onbuttonDivisionClick()
+	{   	
+		display.value += '/';
+	}
+	
+	function onbuttonProductClick()
+	{   	
+		display.value += '*';
+	}
+	
+	function onButtonPlusClick()
+	{   	
+		display.value += '+';
+	
+	}
+	
+	function onButtonClearClick() 
+	{ 
+		display.value = ''; 
+	}
+	
+	function onButtonCalculateClick()
+	{
+		display.value = eval(display.value);
+	}
+	
+	button0.onclick = onButton0Click;
+	button1.onclick = onButton1Click;
+	button2.onclick = onButton2Click;
+	button3.onclick = onButton3Click;
+	button4.onclick = onButton4Click;
+	button5.onclick = onButton5Click;
+	button6.onclick = onButton6Click;
+	button7.onclick = onButton7Click;
+	button8.onclick = onButton8Click;
+	button9.onclick = onButton9Click;
+	buttonDecimalPoint.onclick = onbuttonDecimalPointClick;
+	buttonMinus.onclick = onbuttonMinusClick;
+	buttonDivision.onclick = onbuttonDivisionClick;
+	buttonProduct.onclick = onbuttonProductClick;
+	buttonPlus.onclick = onButtonPlusClick;
+	buttonClear.onclick = onButtonClearClick;
+	buttonCalculate.onclick = onButtonCalculateClick;
+	
+	
+	  
+	</script>
+</html>

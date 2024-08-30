@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    
+    <title>Introduction to WebComponents</title>
+</head>
+<body>
+</body>
+
+<script>
+  
+    class CustomAccountManager extends HTMLElement {
+        constructor() {
+            super() ;
+
+            // Creación de elementos
+            this._title = document.createElement('h1');
+            this._selectSubtitle = document.createElement('h4');
+            this._listButton = this._createButton('List');
+            this._createButtonElement = this._createButton('Create');
+            this._editButton = this._createButton('Edit');
+            this._deleteButton = this._createButton('Delete');
+            this._customSelector = document.createElement('select');
+            this._listTableSubtitle = document.createElement('h3');
+            this._dataTable = document.createElement('table');
+            this._setupTable();
+            this._addOptionToCustomSelector("Select an action", "");
+            this._addOptionToCustomSelector("Search by ID", "searchById");
+
+            // Configurar los textos de los elementos
+            this._title.innerText = 'Account management';
+            this._selectSubtitle.innerText = 'Select an action:';
+            this._listTableSubtitle.innerText = 'User List';
+            this._searchOption = this._createOption("Search by ID", "searchById");
+            this._searchOption.style.display = "none";
+            this._customSelector.appendChild(this._searchOption);
+
+             // Contenedor para alertas
+            this._alertContainer = document.createElement('div');
+            this._alertContainer.classList.add('alert-container');
+
+            // Añadir los elementos a la interfaz
+            this._appendChildren([
+                this._title,
+                this._selectSubtitle,
+                this._listButton,
+                this._createButtonElement,
+                this._editButton,
+                this._deleteButton,
+                this._customSelector,
+                this._listTableSubtitle,
+                this._dataTable,
+                this._alertContainer
+            ]);
+        }
+
+        // Función para crear botones
+        _createButton(text) {
+            const button = document.createElement('button');
+            button.innerText = text;
+            return button;
+        }
+
+        _createSelect(){
+            const select = document.createElement('select')
+            select.innerText = text;
+            return select;
+        }
+
+        // Función para crear opciones
+        _addOptionToCustomSelector(text, value) {
+            const option = document.createElement('option');
+            option.innerText = text;
+            option.value = value;
+            this._customSelector.appendChild(option);
+        }
+
+        // Función para crear opciones
+        _createOption(text, value) {
+            const option = document.createElement('option');
+            option.innerText = text;
+            option.value = value;
+            return option;
+        }
+
+        // Configura la tabla con las columnas
+        _setupTable() {
+            const headerRow = this._dataTable.createTHead().insertRow();
+            headerRow.innerHTML = '<th class="column">ID</th><th class="column">Username</th><th class="column">Balance</th> ';
+        }
+
+        // Añade hijos al componente
+        _appendChildren(children) {
+            children.forEach(child => this.appendChild(child));
+        }
+
+        // Función para mostrar alertas
+        _showAlert(type, message) {
+            const alert = document.createElement('div');
+            alert.classList.add('alert', `alert-${type}`);
+            alert.innerHTML = `<h3>${type.charAt(0).toUpperCase() + type.slice(1)}</h3><p>${message}</p>`;
+            this._alertContainer.appendChild(alert);
+
+            // Eliminar la alerta después de 5 segundos
+            setTimeout(() => {
+                this._alertContainer.removeChild(alert);
+            }, 1500);
+        }
+
+        async onListButtonClick() {
+            try {
+                // Realizar una solicitud fetch para cargar los datos desde el servidor
+                const response = await fetch('/insertCuentas');
+                if (!response.ok) {
+                    throw new Error('Failed to load account data');
+                }
+                const responseData = await response.json();
+
+                // Obtener las cuentas del objeto de respuesta
+                const data = responseData.cuentas;
+
+                // Limpiar la tabla antes de agregar nuevos datos
+                this._dataTable.innerHTML = '';
+                
+                // Crear encabezados de columna
+                const headerRow = this._dataTable.createTHead().insertRow();
+                headerRow.innerHTML = '<th class="column">ID</th><th class="column">Username</th><th class="column">Balance</th>';
+
+                // Verificar si hay datos en el array
+                if (!data || data.length === 0) {
+                    console.log('No accounts available.');
+                    return;
+                }
+                // Iterar sobre los datos y agregarlos a la tabla
+                data.forEach(account => {
+                    const row = this._dataTable.insertRow();
+                    row.innerHTML = `<td>${account.id}</td><td>${account.username}</td><td>${account.balance}</td>`;
+                });
+            } catch (error) {
+                console.error('Error fetching accounts:', error);
+            }
+            this._showAlert('info', 'List loaded successfully.');
+        }
+
+        async onCreateButtonClick() {
+            let _username = prompt('Enter username:');
+            let _balance = prompt('Enter balance:');
+            try {
+                // Realizar una solicitud fetch para agregar un nuevo usuario
+                const response = await fetch('/addUser', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: _username,
+                        balance: parseFloat(_balance) // Parsear el balance como número flotante
+                    })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    // Actualizar la visualización de la tabla y mostrar el nuevo ID
+                    const newRow = this._dataTable.insertRow();
+                    newRow.innerHTML = `<td>${data.id}</td><td>${_username}</td><td>${_balance}</td>`;
+                    this._showAlert('success', `Account created successfully with ID: ${data.id}`);
+                } else {
+                    this._showAlert('error', 'Error creating account');
+                }
+            } catch (error) {
+                this._showAlert('error', 'Error creating account');
+            }
+        }
+
+        // Función para el botón Editar
+        async onEditButtonClick() {
+            let _id = prompt('Enter the ID of the account you want to edit:');
+            let _username = prompt('Enter the new username:');
+            let _balance = prompt('Enter the new balance:');
+            try {
+                // Realizar una solicitud fetch para editar el usuario existente
+                const response = await fetch(`/editUser/${_id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: _username,
+                        balance: parseFloat(_balance)
+                    })
+                });
+                if (response.ok) {
+                    // Actualizar la visualización de la tabla con los datos editados
+                    const editedAccount = await response.json();
+                    const rows = this._dataTable.rows;
+                    for (let i = 1; i < rows.length; i++) {
+                        if (rows[i].cells[0].innerText === _id) {
+                            rows[i].cells[1].innerText = _username;
+                            rows[i].cells[2].innerText = _balance;
+                            break;
+                        }
+                    }
+                    this._showAlert('success','Account edited successfully');
+                } else {
+                    this._showAlert('error', 'Error editing account.');
+                }
+            } catch (error) {
+                this._showAlert('error', 'Error editing account.');
+            }
+        }
+
+        // Función para el botón Eliminar
+        async onDeleteButtonClick() {
+            let _id = prompt('Enter the ID of the account you want to delete:');
+            let confirmDelete = confirm('Are you sure you want to delete this account?');
+            if (!confirmDelete) {
+                return;
+            }
+            try {
+                // Realizar una solicitud fetch para eliminar la cuenta
+                const response = await fetch(`/deleteUser/${_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id : _id
+                    })
+                });
+                if (response.ok) {
+                    // Eliminar la fila correspondiente de la tabla
+                    const rows = this._dataTable.rows;
+                    for (let i = 1; i < rows.length; i++) {
+                        if (rows[i].cells[0].innerText === _id) {
+                        rows[i].remove();
+                        break;
+                    }
+                }
+                    this._showAlert('success', 'Account delete successfully');
+                } else {
+                    this._showAlert('error', 'Error deleting account.');
+                }
+            } catch (error) {
+                this._showAlert('error', 'Error deleting account.');
+            }
+        }
+
+        async onSearchUser() {
+            let _id = prompt('Enter the ID of the account you want to find:');   
+            try {
+                // Realizar una solicitud fetch para buscar la cuenta por ID
+                const response = await fetch(`/searchUser/${_id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    const account = await response.json();
+                    alert(`Account found:\nID: ${account.id}\nUsername: ${account.username}\nBalance: ${account.balance}`);
+                } else {
+                    this._showAlert('warning', 'Account not found.');
+                }
+            } catch (error) {
+                this._showAlert('error', 'Error searching account.');
+            }
+            this._customSelector.value = "";
+        }
+
+        // Método para manejar el cambio en el selector personalizado
+        _onCustomSelectorChange(event) {
+            const selectedValue = event.target.value;
+            if (selectedValue === "searchById") {
+                this.onSearchUser();
+            }
+        }
+
+        // Método que se ejecuta cuando se conecta el componente
+        connectedCallback() {
+            this._listButton.onclick = this.onListButtonClick.bind(this);
+            this._createButtonElement.onclick = this.onCreateButtonClick.bind(this);
+            this._editButton.onclick = this.onEditButtonClick.bind(this);
+            this._deleteButton.onclick = this.onDeleteButtonClick.bind(this);
+            this._customSelector.onchange = this._onCustomSelectorChange.bind(this);
+        }
+
+        disconnectedCallback() { }
+
+        adoptedCallback() { }
+
+        attributeChangedCallback(oldValue, newValue) { }
+
+        static observableAttributes() {
+            return [];
+        }
+    }
+
+    // Define el nuevo elemento personalizado
+    customElements.define('x-crud-wc', CustomAccountManager);
+
+    // Crea una instancia del componente y lo agrega al cuerpo del documento
+    let crudUIObject = new CustomAccountManager();
+    document.body.appendChild(crudUIObject);
+
+</script>
+
+</html>
