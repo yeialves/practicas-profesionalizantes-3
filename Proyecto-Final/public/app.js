@@ -3,7 +3,9 @@ class CharacterView extends HTMLElement {
         super(); 
         this.drawingContext = drawingContext; // Guarda el contexto de dibujo del canvas
         this.currentState = null; // Estado actual del personaje
+        this.animals = []; // Añade un array para los animales
     }
+
 
     // Define el nuevo estado y actualiza la vista
     set state(newState) {
@@ -16,22 +18,35 @@ class CharacterView extends HTMLElement {
     }
 
     update() {
-        // Limpia el canvas antes de redibujar
         this.drawingContext.clearRect(0, 0, this.drawingContext.canvas.width, this.drawingContext.canvas.height);
 
-        // Redibuja el mapa si existe
         if (this.mapData) {
-            this.drawMap(this.mapData, this.drawingContext, 64);  // Llama a la función para dibujar el mapa
+            this.drawMap(this.mapData, this.drawingContext, 64);
         }
 
-        // Dibuja el personaje con su sprite actual y posición
+        // Dibuja al personaje principal
+        if (this.state) {
+            this.drawCharacter(this.state);
+        }
+
+        // Dibuja a los animales
+        this.animals.forEach(animal => this.drawCharacter(animal.state));
+    }
+
+    // Función para dibujar cualquier personaje
+    drawCharacter(state) {
         const img = new Image();
-        img.src = this.state.sprite; // Carga el sprite del personaje
+        img.src = state.sprite;
         this.drawingContext.drawImage(
             img,
-            this.state.frame * 64, 0, 64, 64, // Usa el frame correcto de la animación
-            this.state.position_x, this.state.position_y, 64, 64 // Dibuja el personaje en la posición actual
+            state.frame * 64, 0, 64, 64, 
+            state.position_x, state.position_y, 64, 64
         );
+    }
+
+    // Añade animales a la vista
+    addAnimal(animalModel) {
+        this.animals.push(animalModel);
     }
 
     // Función para dibujar el mapa en el canvas
@@ -44,7 +59,7 @@ class CharacterView extends HTMLElement {
 
         // Recorre las capas del mapa
         layers.forEach(layer => {
-            if (layer.type === 'tilelayer' && layer.name !== 'collision') { // Ignora la capa de colisión
+            if (layer.type === 'tilelayer' && layer.name !== 'collision' && layer.name !== 'animalCollision') { // Ignora la capa de colisión
                 for (let y = 0; y < height; y++) { // Recorre las filas de tiles
                     for (let x = 0; x < width; x++) { // Recorre las columnas de tiles
                         const tileIndex = layer.data[y * width + x]; // Índice del tile actual
@@ -64,7 +79,7 @@ class CharacterView extends HTMLElement {
                 }
             }
         });
-    }    
+    }
 }
 
 // Registra el componente 'character-view' para el DOM
@@ -74,59 +89,88 @@ class CharacterModel extends EventTarget {
     constructor() {
         super();
         this.state = {
-            width: 64, 
+            width: 64,
             height: 64,
-            position_x: 0, // Posición inicial en x
-            position_y: 0, // Posición inicial en y
-            frame: 0, // Frame actual para la animación
-            speed: 3, // Velocidad de movimiento
-            sprite: 'assets/Felix-Walk-Front-Sheet-64x64.png' // Sprite inicial
+            position_x: 0,
+            position_y: 0,
+            frame: 0,
+            speed: 3,
+            isIdle: false // Nuevo estado para determinar si está en idle
         };
-        this.isMoving = false; // Indica si el personaje se está moviendo
-        this.direction = { x: 0, y: 0 }; // Dirección de movimiento (sin movimiento inicial)
-        this.collisionLayer = null; // Capa de colisiones del mapa
-        this.tileSize = 64; // Tamaño de los tiles
+        this.direction = { x: 0, y: 0 };
+        this.lastDirection = { x: 0, y: 1 }; // Última dirección (por defecto, mirando al frente)
+        this.collisionLayer = null;
+        this.tileSize = 64;
+        this.frameCounter = 0; // Contador para los frames
     }
 
-    // Actualiza la posición del personaje
     updatePosition() {
-        if (this.direction.x !== 0 || this.direction.y !== 0) { // Solo si hay dirección
-            const dx = this.direction.x * this.state.speed; // Desplazamiento en x
-            const dy = this.direction.y * this.state.speed; // Desplazamiento en y
-            const newX = this.state.position_x + dx; // Nueva posición en x
-            const newY = this.state.position_y + dy; // Nueva posición en y
-
-            // Ajustar las coordenadas a los tiles más cercanos
-            const alignedX = Math.round(newX / this.tileSize) * this.tileSize;
-            const alignedY = Math.round(newY / this.tileSize) * this.tileSize;
-
-            // Verifica colisiones antes de mover
-            if (!this.isCollision(alignedX, alignedY)) {
-                this.state.position_x = newX; // Actualiza la posición x
-                this.state.position_y = newY; // Actualiza la posición y
-
-                // Cambia el sprite según la dirección del movimiento
-                if (this.direction.x > 0) {
-                    this.state.sprite = 'assets/Felix-Walk-Right-Sheet-64x64.png';
-                } else if (this.direction.x < 0) {
-                    this.state.sprite = 'assets/Felix-Walk-Left-Sheet-64x64.png';
-                } else if (this.direction.y > 0) {
-                    this.state.sprite = 'assets/Felix-Walk-Front-Sheet-64x64.png';
-                } else if (this.direction.y < 0) {
-                    this.state.sprite = 'assets/Felix-Walk-Back-Sheet-64x64.png';
-                }
-
-                // Actualiza el frame de la animación
-                this.frameCounter = (this.frameCounter || 0) + 1;
-                if (this.frameCounter % 10 === 0) {
-                    this.state.frame = (this.state.frame + 1) % 4; // Cambia de frame
-                }
-
-                this.dispatchEvent(new CustomEvent('positionchanged')); // Notifica el cambio de posición
+        // Si el personaje se está moviendo, actualiza la posición
+        if (this.direction.x !== 0 || this.direction.y !== 0) {
+            this.state.isIdle = false; // Está en movimiento
+            this.moveCharacter(); // Mueve al personaje
+        } else {
+            this.handleIdleState(); // Maneja el estado idle
+        }
+    
+        this.updateSprite(); // Actualiza el sprite según el estado
+        this.updateFrame();  // Actualiza el frame de la animación
+        this.dispatchEvent(new CustomEvent('positionchanged')); // Notifica el cambio de posición
+    }
+    
+    moveCharacter() {
+        const dx = this.direction.x * this.state.speed;
+        const dy = this.direction.y * this.state.speed;
+        const newX = this.state.position_x + dx;
+        const newY = this.state.position_y + dy;
+    
+        const alignedX = Math.round(newX / this.tileSize) * this.tileSize;
+        const alignedY = Math.round(newY / this.tileSize) * this.tileSize;
+    
+        if (!this.isCollision(alignedX, alignedY)) {
+            this.state.position_x = newX;
+            this.state.position_y = newY;
+            this.lastDirection = { ...this.direction }; // Guarda la última dirección de movimiento
+        }
+    }
+    
+    handleIdleState() {
+        this.state.isIdle = true; // No hay movimiento, está en idle
+    }
+    
+    updateSprite() {
+        if (!this.state.isIdle) {
+            // Cambia el sprite según la dirección del movimiento
+            if (this.direction.x > 0) {
+                this.state.sprite = 'assets/Felix-Walk-Right-Sheet-64x64.png';
+            } else if (this.direction.x < 0) {
+                this.state.sprite = 'assets/Felix-Walk-Left-Sheet-64x64.png';
+            } else if (this.direction.y > 0) {
+                this.state.sprite = 'assets/Felix-Walk-Front-Sheet-64x64.png';
+            } else if (this.direction.y < 0) {
+                this.state.sprite = 'assets/Felix-Walk-Back-Sheet-64x64.png';
+            }
+        } else {
+            // Cambia al sprite idle basado en la última dirección de movimiento
+            if (this.lastDirection.x > 0) {
+                this.state.sprite = 'assets/Felix-Right-Idel-Sheet.png';
+            } else if (this.lastDirection.x < 0) {
+                this.state.sprite = 'assets/Felix-Left-Idel-Sheet.png';
+            } else if (this.lastDirection.y > 0) {
+                this.state.sprite = 'assets/Felix-Front-Idel-Sheet.png';
+            } else if (this.lastDirection.y < 0) {
+                this.state.sprite = 'assets/Felix-Back-Idel-Sheet.png';
             }
         }
     }
-
+    
+    updateFrame() {
+        // Actualiza el frame de la animación
+        this.frameCounter++;
+        if (this.frameCounter % 10 === 0) {
+            this.state.frame = (this.state.frame + 1) % 4; // Cambia de frame cada 10 actualizaciones
+        }
+    }
     // Verifica si hay colisión en la nueva posición
     isCollision(newX, newY) {
         if (!this.collisionLayer) return false; // No hay colisiones si no se ha cargado la capa
@@ -155,21 +199,23 @@ class CharacterModel extends EventTarget {
         this.direction.y = y;
     }
 
-    // Carga el mapa desde una URL
     async loadMap(url) {
-        const response = await fetch(url); // Carga el mapa
+        const response = await fetch(url);
         if (!response.ok) {
-            throw new Error('Failed to load map: ' + response.statusText); // Error si falla la carga
+            throw new Error('Failed to load map: ' + response.statusText);
         }
-        const mapData = await response.json(); // Convierte la respuesta en JSON
-
-        // Encuentra la capa de colisiones y la guarda
+        const mapData = await response.json();
+    
+        // Carga la capa de colisiones para personajes
         this.collisionLayer = mapData.layers.find(layer => layer.name === 'collision');
-        return mapData; // Retorna los datos del mapa
-    }
+    
+        // Carga la capa de colisiones para animales
+        this.animalCollisionLayer = mapData.layers.find(layer => layer.name === 'animalCollision');
+    
+        return mapData;
+    }    
+    
 }
-
-
 
 class CharacterController {
     constructor(model, view) {
@@ -203,10 +249,11 @@ class CharacterController {
 
     // Maneja el evento de soltar teclas
     handleKeyUp(event) {
-        if (event.key === 'w') this.keys.w = false; // Desactiva el movimiento hacia arriba
+        if (event.key === 'w')this.keys.w = false;// Desactiva el movimiento hacia arriba 
         if (event.key === 'a') this.keys.a = false; // Desactiva el movimiento a la izquierda
         if (event.key === 's') this.keys.s = false; // Desactiva el movimiento hacia abajo
         if (event.key === 'd') this.keys.d = false; // Desactiva el movimiento a la derecha
+
         this.updateDirection(); // Actualiza la dirección del personaje
     }
 
@@ -229,32 +276,125 @@ class CharacterController {
     }
 }
 
-// Función principal para iniciar el juego
-async function main() {
-    let canvas = document.createElement('canvas'); // Crea un canvas
-    canvas.width = 1856; // Ancho del canvas
-    canvas.height = 896; // Alto del canvas
-    canvas.style.paddingLeft = "20px";
-    canvas.style.paddingTop = "10px";
-
-    document.getElementById('game-container').appendChild(canvas); // Añade el canvas al contenedor
-
-    const context = canvas.getContext('2d'); // Obtiene el contexto de dibujo
-
-    let characterModel = new CharacterModel(); // Crea el modelo del personaje
-    let characterView = new CharacterView(context); // Crea la vista del personaje
-    let characterController = new CharacterController(characterModel, characterView); // Crea el controlador
-
-    try {
-        const mapData = await characterModel.loadMap('mapa.tmj'); // Carga el mapa
-        const tileSize = 64;
-        characterView.mapData = mapData; // Asigna los datos del mapa a la vista
-        characterView.drawMap(mapData, context, tileSize); // Dibuja el mapa
-    } catch (error) {
-        console.error('Error loading map:', error); // Error en la carga del mapa
+class AnimalModel extends CharacterModel {
+    constructor(animalType, animalCollisionLayer) {
+        super();
+        this.animalType = animalType;
+        this.sprites = this.getAnimalSprites(animalType);
+        this.state.sprite = this.sprites.idle;
+        this.animalCollisionLayer = animalCollisionLayer; // Asigna la capa 
+        this.setRandomDirection();
     }
 
-    characterController.connect(); // Conecta los eventos de teclado
+    // Método para establecer una dirección aleatoria
+    setRandomDirection() {
+        const directions = [
+            { x: 1, y: 0 }, // derecha
+            { x: -1, y: 0 }, // izquierda
+            { x: 0, y: 1 }, // abajo
+            { x: 0, y: -1 } // arriba
+        ];
+        
+        // Selecciona una dirección al azar
+        const randomIndex = Math.floor(Math.random() * directions.length);
+        this.setDirection(directions[randomIndex].x, directions[randomIndex].y);
+    }
+
+    // Función para obtener los sprites según el tipo de animal
+    getAnimalSprites(animalType) {
+        const spriteMap = {
+            'vaca': {
+                walkRight: 'assets/vaquita-spread-dere.png',
+                walkLeft: 'assets/vaquita-spread-iz.png',
+                walkFront: 'assets/vaquita-spread.png',
+                walkBack: 'assets/vaquita-paatras-Sheet.png',
+                idle: 'assets/vaquita-mimida-Sheet.png'
+            },
+        };
+        return spriteMap[animalType] || spriteMap['vaca']; // Devuelve sprites por defecto si no se encuentra el tipo
+    }
+
+    // Método para actualizar el sprite según la dirección
+    updateSprite() {
+        if (this.direction.x > 0) {
+            this.state.sprite = this.sprites.walkRight;
+        } else if (this.direction.x < 0) {
+            this.state.sprite = this.sprites.walkLeft;
+        } else if (this.direction.y > 0) {
+            this.state.sprite = this.sprites.walkFront;
+        } else if (this.direction.y < 0) {
+            this.state.sprite = this.sprites.walkBack;
+        }
+    }
+
+    // Cuando el animal está idle
+    updateIdleState() {
+        this.state.sprite = this.sprites.idle;
+        this.updateFrame();
+    }
+
+     // Sobrescribe el método isCollision para usar la capa de colisiones de animales
+     isCollision(newX, newY) {
+        if (!this.animalCollisionLayer) return false; // Si no hay capa de colisiones para animales, no hay colisión
+
+        // Verifica si alguna esquina del animal choca con un tile bloqueado en la capa de colisiones de animales
+        const topLeft = this.isTileBlocked(newX, newY, this.animalCollisionLayer);
+        const topRight = this.isTileBlocked(newX + this.state.width - 1, newY, this.animalCollisionLayer);
+        const bottomLeft = this.isTileBlocked(newX, newY + this.state.height - 1, this.animalCollisionLayer);
+        const bottomRight = this.isTileBlocked(newX + this.state.width - 1, newY + this.state.height - 1, this.animalCollisionLayer);
+
+        return topLeft || topRight || bottomLeft || bottomRight; // Colisión si alguna esquina choca
+    }
+
+    // Método para verificar si un tile está bloqueado en una capa específica
+    isTileBlocked(x, y, layer) {
+        const tileX = Math.floor(x / this.tileSize); // Índice del tile en x
+        const tileY = Math.floor(y / this.tileSize); // Índice del tile en y
+        const tileIndex = tileY * layer.width + tileX; // Índice en el array de tiles
+
+        return layer.data[tileIndex] > 0; // Retorna true si el tile está bloqueado
+    }
+}
+
+
+// Modifica la función main para añadir animales
+async function main() {
+    let canvas = document.createElement('canvas');
+    canvas.width = 1856;
+    canvas.height = 896;
+
+    document.getElementById('game-container').appendChild(canvas);
+    const context = canvas.getContext('2d');
+
+    let characterModel = new CharacterModel();
+    let characterView = new CharacterView(context);
+    let characterController = new CharacterController(characterModel, characterView);
+
+    try {
+        const mapData = await characterModel.loadMap('mapa.tmj');
+        const tileSize = 64;
+        characterView.mapData = mapData;
+        characterView.drawMap(mapData, context, tileSize);
+    } catch (error) {
+        console.error('Error loading map:', error);
+    }
+
+    // Añadir un animal al juego
+ // Después de cargar el mapa
+    let vaca = new AnimalModel('vaca', characterModel.animalCollisionLayer);
+    vaca.state.position_x = 128;
+    vaca.state.position_y = 128;
+    characterView.addAnimal(vaca);
+
+    characterController.connect();
+
+    // Animar los animales
+    function animateAnimals() {
+       vaca.updatePosition();
+        requestAnimationFrame(animateAnimals);
+    }
+
+    animateAnimals(); // Inicia la animación de los animales
 }
 
 window.onload = main; // Ejecuta la función main cuando la ventana se carga
