@@ -1,13 +1,29 @@
-body, html {
-    margin: 0;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #9575cd; 
+}
   
 .game-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 512px;  /* Tamaño de la cámara */
+  height: 512px; 
+}
+
+  .night{
+    filter:brightness(73%) hue-rotate(23deg);
   }
+
+  canvas {
+    display: flex;
+    border: 4px solid white;  
+    background-color: #000;
+
+}

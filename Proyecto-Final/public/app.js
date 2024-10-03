@@ -1,20 +1,22 @@
 class CharacterView extends HTMLElement {
     constructor(drawingContext) {
         super(); 
-        this.drawingContext = drawingContext; // Guarda el contexto de dibujo del canvas
-        this.currentState = null; // Estado actual del personaje
-        this.animals = []; // Añade un array para los animales
+        this.drawingContext = drawingContext;
+        this.currentState = null;
+        this.animals = [];
+
+        // Tamaño de la cámara (el área visible alrededor del personaje)
+        this.cameraWidth = 512;  
+        this.cameraHeight = 512;
     }
 
-
-    // Define el nuevo estado y actualiza la vista
     set state(newState) {
         this.currentState = newState;
-        this.update(); // Redibuja cuando el estado cambia
+        this.update();
     }
 
     get state() {
-        return this.currentState; // Obtiene el estado actual del personaje
+        return this.currentState;
     }
 
     update() {
@@ -24,7 +26,7 @@ class CharacterView extends HTMLElement {
             this.drawMap(this.mapData, this.drawingContext, 64);
         }
 
-        // Dibuja al personaje principal
+        // Dibuja al personaje
         if (this.state) {
             this.drawCharacter(this.state);
         }
@@ -33,14 +35,18 @@ class CharacterView extends HTMLElement {
         this.animals.forEach(animal => this.drawCharacter(animal.state));
     }
 
-    // Función para dibujar cualquier personaje
     drawCharacter(state) {
         const img = new Image();
         img.src = state.sprite;
+
+        // Calcula la posición relativa a la cámara
+        const relativeX = state.position_x - (this.state.position_x - this.cameraWidth / 2);
+        const relativeY = state.position_y - (this.state.position_y - this.cameraHeight / 2);
+
         this.drawingContext.drawImage(
             img,
             state.frame * 64, 0, 64, 64, 
-            state.position_x, state.position_y, 64, 64
+            relativeX, relativeY, 64, 64
         );
     }
 
@@ -49,31 +55,40 @@ class CharacterView extends HTMLElement {
         this.animals.push(animalModel);
     }
 
-    // Función para dibujar el mapa en el canvas
     drawMap(mapData, context, tileSize) {
-        const layers = mapData.layers; // Capas del mapa
-        const width = mapData.width; // Ancho del mapa en tiles
-        const height = mapData.height; // Alto del mapa en tiles
-        const tilesetImage = document.getElementById('tiles'); // Imagen del conjunto de tiles
-        const tilesetWidth = tilesetImage.width / tileSize; // Número de tiles por fila en el tileset
+        const layers = mapData.layers;
+        const width = mapData.width;
+        const height = mapData.height;
+        const tilesetImage = document.getElementById('tiles');
+        const tilesetWidth = tilesetImage.width / tileSize;
 
-        // Recorre las capas del mapa
+        const cameraX = this.state.position_x - this.cameraWidth / 2;
+        const cameraY = this.state.position_y - this.cameraHeight / 2;
+
         layers.forEach(layer => {
-            if (layer.type === 'tilelayer' && layer.name !== 'collision' && layer.name !== 'animalCollision') { // Ignora la capa de colisión
-                for (let y = 0; y < height; y++) { // Recorre las filas de tiles
-                    for (let x = 0; x < width; x++) { // Recorre las columnas de tiles
-                        const tileIndex = layer.data[y * width + x]; // Índice del tile actual
+            if (layer.type === 'tilelayer' && layer.name !== 'collision' && layer.name !== 'animalCollision') {
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const tileIndex = layer.data[y * width + x];
                         if (tileIndex > 0) {
-                            // Calcula la posición del tile en el tileset
                             const tileX = (tileIndex - 1) % tilesetWidth;
                             const tileY = Math.floor((tileIndex - 1) / tilesetWidth);
 
-                            // Dibuja el tile en la posición correcta del canvas
-                            context.drawImage(
-                                tilesetImage, 
-                                tileX * tileSize, tileY * tileSize, tileSize, tileSize, // Posición dentro del tileset
-                                x * tileSize, y * tileSize, tileSize, tileSize // Posición en el canvas
-                            );
+                            const tilePosX = x * tileSize;
+                            const tilePosY = y * tileSize;
+
+                            // Verifica si el tile está dentro del área visible de la cámara
+                            if (
+                                tilePosX + tileSize > cameraX && tilePosX < cameraX + this.cameraWidth &&
+                                tilePosY + tileSize > cameraY && tilePosY < cameraY + this.cameraHeight
+                            ) {
+                                // Dibuja el tile en la posición relativa a la cámara
+                                context.drawImage(
+                                    tilesetImage, 
+                                    tileX * tileSize, tileY * tileSize, tileSize, tileSize, 
+                                    tilePosX - cameraX, tilePosY - cameraY, tileSize, tileSize
+                                );
+                            }
                         }
                     }
                 }
@@ -91,8 +106,8 @@ class CharacterModel extends EventTarget {
         this.state = {
             width: 64,
             height: 64,
-            position_x: 0,
-            position_y: 0,
+            position_x: 1000,
+            position_y: 300,
             frame: 0,
             speed: 3,
             isIdle: false // Nuevo estado para determinar si está en idle
@@ -109,15 +124,46 @@ class CharacterModel extends EventTarget {
         if (this.direction.x !== 0 || this.direction.y !== 0) {
             this.state.isIdle = false; // Está en movimiento
             this.moveCharacter(); // Mueve al personaje
+
+            // Verifica si el personaje llega al borde del mapa
+            this.checkForMapChange();  // Llamada a la nueva función
         } else {
             this.handleIdleState(); // Maneja el estado idle
         }
-    
+
         this.updateSprite(); // Actualiza el sprite según el estado
         this.updateFrame();  // Actualiza el frame de la animación
         this.dispatchEvent(new CustomEvent('positionchanged')); // Notifica el cambio de posición
     }
     
+    checkForMapChange() {
+        // Obtener el mapa en píxeles
+        const mapWidthPixels = this.collisionLayer.width * this.tileSize;
+        const mapHeightPixels = this.collisionLayer.height * this.tileSize;
+    
+        // Verificar si el personaje está en el borde derecho, izquierdo o inferior del mapa
+        const isOnRightEdge = this.state.position_x + this.state.width >= mapWidthPixels;  // Borde derecho
+        const isOnLeftEdge = this.state.position_x <= 1; // Permite un pequeño margen
+        const isOnBottomEdge = this.state.position_y + this.state.height >= mapHeightPixels;  // Borde inferior
+    
+        // Verifica si está en la capa de "camino"
+        const isOnCaminoLayer = this.isOnCaminoLayer(this.state.position_x, this.state.position_y);
+    
+        if (isOnRightEdge && isOnCaminoLayer) {
+            console.log("Posición del personaje:", this.state.position_x, this.state.position_y);
+            // Cambia a 'prueba.tmj' al llegar al borde derecho en la capa "camino"
+            this.loadNewMap('prueba.tmj', 1000, 300);  
+        } else if (isOnLeftEdge && isOnCaminoLayer) {
+            console.log("Posición del personaje:", this.state.position_x, this.state.position_y);
+            // Cambia a 'mapa.tmj' al llegar al borde izquierdo en la capa "camino"
+            this.loadNewMap('mapa.tmj', 1000, 300);
+        } else if (isOnBottomEdge && isOnCaminoLayer) {
+            console.log("Posición del personaje:", this.state.position_x, this.state.position_y);
+            // Cambia a 'prueba.tmj' al llegar al borde inferior en la capa "camino"
+            this.loadNewMap('prueba.tmj', 1000, 300);  
+        }
+    }
+
     moveCharacter() {
         const dx = this.direction.x * this.state.speed;
         const dy = this.direction.y * this.state.speed;
@@ -126,8 +172,15 @@ class CharacterModel extends EventTarget {
     
         const alignedX = Math.round(newX / this.tileSize) * this.tileSize;
         const alignedY = Math.round(newY / this.tileSize) * this.tileSize;
+
+        //Obtener el mapa en pixeles
+        const mapWhidthPixels = this.collisionLayer.width * this.tileSize;
+        const mapHeightPixels = this.collisionLayer.height * this.tileSize;
+
     
-        if (!this.isCollision(alignedX, alignedY)) {
+        if (alignedX >= 0 && alignedX + this.state.width <= mapWhidthPixels && 
+            alignedY >= 0 && alignedY + this.state.height <= mapHeightPixels &&
+            !this.isCollision(alignedX, alignedY)) {
             this.state.position_x = newX;
             this.state.position_y = newY;
             this.lastDirection = { ...this.direction }; // Guarda la última dirección de movimiento
@@ -171,6 +224,7 @@ class CharacterModel extends EventTarget {
             this.state.frame = (this.state.frame + 1) % 4; // Cambia de frame cada 10 actualizaciones
         }
     }
+
     // Verifica si hay colisión en la nueva posición
     isCollision(newX, newY) {
         if (!this.collisionLayer) return false; // No hay colisiones si no se ha cargado la capa
@@ -201,19 +255,65 @@ class CharacterModel extends EventTarget {
 
     async loadMap(url) {
         const response = await fetch(url);
+    
         if (!response.ok) {
             throw new Error('Failed to load map: ' + response.statusText);
         }
         const mapData = await response.json();
     
+        this.mapData = mapData;  // Asigna el mapa a this.mapData
+    
         // Carga la capa de colisiones para personajes
         this.collisionLayer = mapData.layers.find(layer => layer.name === 'collision');
+        if (!this.collisionLayer) {
+            console.error('Collision layer not found');
+        }
     
         // Carga la capa de colisiones para animales
         this.animalCollisionLayer = mapData.layers.find(layer => layer.name === 'animalCollision');
+        if (!this.animalCollisionLayer) {
+            console.error('Animal collision layer not found');
+        }
     
         return mapData;
-    }    
+    }
+    
+    isOnCaminoLayer(x, y) {
+        // Verifica si el mapa y las capas están cargados correctamente
+        if (!this.mapData || !this.mapData.layers) {
+            console.error('El mapa o las capas no están cargados correctamente');
+            return false;
+        }
+    
+        // Encuentra la capa "camino"
+        const caminoLayer = this.mapData.layers.find(layer => layer.name === 'camino');
+        if (!caminoLayer) {
+            console.error('La capa "camino" no está presente en el mapa');
+            return false;
+        }
+    
+        const tileX = Math.floor(x / this.tileSize);
+        const tileY = Math.floor(y / this.tileSize);
+        const tileIndex = tileY * this.collisionLayer.width + tileX;
+    
+        // Verifica si el tile en esa posición pertenece a la capa "camino"
+        return caminoLayer.data[tileIndex] > 0;
+    }
+    
+    async loadNewMap(url, newX, newY) {
+        try {
+            const mapData = await this.loadMap(url); // Cargar el nuevo mapa
+            this.mapData = mapData; // Asigna el mapa a this.mapData
+            this.state.position_x = newX; // Establece la nueva posición del personaje
+            this.state.position_y = newY; // Establece la nueva posición del personaje
+            console.log("Nueva posición del personaje en mapa.tmj:", this.state.position_x, this.state.position_y);
+            this.dispatchEvent(new CustomEvent('mapchanged', { detail: { mapData } })); // Notifica el cambio de mapa
+        } catch (error) {
+            console.error('Error al cargar el nuevo mapa:', error);
+        }
+    }
+    
+      
     
 }
 
@@ -222,6 +322,7 @@ class CharacterController {
         this.model = model;
         this.view = view;
         this.model.addEventListener('positionchanged', () => this.updateView()); // Actualiza la vista cuando cambia la posición del personaje
+        this.model.addEventListener('mapchanged', (event) => this.handleMapChange(event)); // Escucha el cambio de mapa
 
         this.keys = {
             w: false,
@@ -274,6 +375,13 @@ class CharacterController {
         this.model.updatePosition(); // Actualiza la posición del personaje
         requestAnimationFrame(() => this.animate()); // Continúa la animación en el siguiente frame
     }
+
+    // Función para manejar el cambio de mapa
+    handleMapChange(event) {
+        const newMapData = event.detail.mapData;
+        this.view.mapData = newMapData; // Actualiza la vista con el nuevo mapa
+        this.view.update(); // Llama a la función de actualización para redibujar la pantalla con el nuevo mapa
+    }
 }
 
 class AnimalModel extends CharacterModel {
@@ -282,10 +390,32 @@ class AnimalModel extends CharacterModel {
         this.animalType = animalType;
         this.sprites = this.getAnimalSprites(animalType);
         this.state.sprite = this.sprites.idle;
-        this.animalCollisionLayer = animalCollisionLayer; // Asigna la capa 
+        this.animalCollisionLayer = animalCollisionLayer;
+        
+        console.log('Animal Collision Layer:', this.animalCollisionLayer); // Agrega esta línea
         this.setRandomDirection();
+        this.directionChangeCounter = 0;
     }
+    
 
+    updatePosition() {
+        if (!this.animalCollisionLayer) {
+            console.warn('No se puede actualizar la posición: animalCollisionLayer no está configurada');
+            return; // Evita actualizar la posición si la capa de colisiones no está disponible
+        }
+    
+        this.directionChangeCounter++;
+        
+        // Cambia la dirección aleatoriamente cada 100 actualizaciones
+        if (this.directionChangeCounter > 100) {
+            this.setRandomDirection();
+            this.directionChangeCounter = 0;
+        }
+    
+        // Llama al método de la clase base para mover el animal
+        super.updatePosition();
+    }
+    
     // Método para establecer una dirección aleatoria
     setRandomDirection() {
         const directions = [
@@ -299,6 +429,34 @@ class AnimalModel extends CharacterModel {
         const randomIndex = Math.floor(Math.random() * directions.length);
         this.setDirection(directions[randomIndex].x, directions[randomIndex].y);
     }
+
+    moveCharacter() {
+        if (!this.collisionLayer || !this.animalCollisionLayer) {
+            console.warn('Collision layer not set for animal, skipping movement update');
+            return; // Skip movement if the collision layer is not available
+        }
+    
+        const dx = this.direction.x * this.state.speed;
+        const dy = this.direction.y * this.state.speed;
+        const newX = this.state.position_x + dx;
+        const newY = this.state.position_y + dy;
+    
+        const alignedX = Math.round(newX / this.tileSize) * this.tileSize;
+        const alignedY = Math.round(newY / this.tileSize) * this.tileSize;
+    
+        // Get the map dimensions in pixels
+        const mapWidthPixels = this.animalCollisionLayer.width * this.tileSize;
+        const mapHeightPixels = this.animalCollisionLayer.height * this.tileSize;
+    
+        if (alignedX >= 0 && alignedX + this.state.width <= mapWidthPixels && 
+            alignedY >= 0 && alignedY + this.state.height <= mapHeightPixels &&
+            !this.isCollision(alignedX, alignedY)) {
+            this.state.position_x = newX;
+            this.state.position_y = newY;
+            this.lastDirection = { ...this.direction }; // Store last movement direction
+        }
+    }
+    
 
     // Función para obtener los sprites según el tipo de animal
     getAnimalSprites(animalType) {
@@ -324,6 +482,8 @@ class AnimalModel extends CharacterModel {
             this.state.sprite = this.sprites.walkFront;
         } else if (this.direction.y < 0) {
             this.state.sprite = this.sprites.walkBack;
+        } else {
+            this.state.sprite = this.sprites.idle;
         }
     }
 
@@ -356,14 +516,20 @@ class AnimalModel extends CharacterModel {
     }
 }
 
-
-// Modifica la función main para añadir animales
 async function main() {
-    let canvas = document.createElement('canvas');
-    canvas.width = 1856;
-    canvas.height = 896;
 
-    document.getElementById('game-container').appendChild(canvas);
+    const container = document.getElementById('game-container');
+    
+    if (!container) {
+        console.error('El contenedor del juego no existe.');
+        return; // Detener la ejecución si el contenedor no está presente
+    }
+
+    let canvas = document.createElement('canvas');
+    canvas.width = 512; 
+    canvas.height = 512;
+
+    container.appendChild(canvas);
     const context = canvas.getContext('2d');
 
     let characterModel = new CharacterModel();
@@ -372,29 +538,35 @@ async function main() {
 
     try {
         const mapData = await characterModel.loadMap('mapa.tmj');
+        if (!mapData) {
+            throw new Error('No se pudo cargar el mapa. Los datos son nulos.');
+        }
+        
+        // Establece el estado del personaje en la vista
+        characterView.state = characterModel.state; // Asegúrate de que el estado esté definido antes de dibujar
+    
         const tileSize = 64;
         characterView.mapData = mapData;
         characterView.drawMap(mapData, context, tileSize);
     } catch (error) {
         console.error('Error loading map:', error);
-    }
+    }    
+
+    characterController.connect();
 
     // Añadir un animal al juego
- // Después de cargar el mapa
-    let vaca = new AnimalModel('vaca', characterModel.animalCollisionLayer);
+    // Después de cargar el mapa
+    /*let vaca = new AnimalModel('vaca', characterModel.animalCollisionLayer);
     vaca.state.position_x = 128;
     vaca.state.position_y = 128;
     characterView.addAnimal(vaca);
 
-    characterController.connect();
-
-    // Animar los animales
     function animateAnimals() {
-       vaca.updatePosition();
-        requestAnimationFrame(animateAnimals);
+        vaca.updatePosition(); // Actualiza la posición del animal
+        characterView.update(); // Actualiza la vista para redibujar el animal en su nueva posición
+        requestAnimationFrame(animateAnimals); // Llama a la animación de nuevo en el siguiente frame
     }
-
-    animateAnimals(); // Inicia la animación de los animales
+    animateAnimals(); // Inicia la animación de los animales*/
 }
 
 window.onload = main; // Ejecuta la función main cuando la ventana se carga
