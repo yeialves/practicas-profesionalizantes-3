@@ -227,7 +227,7 @@ export class AnimalModel extends CharacterModel {
         super();
         this.animalType = animalType;
         this.sprites = this.getAnimalSprites(animalType);
-        this.state.sprite = this.sprites.idle; // Comienza en estado idle
+        this.state.sprite = this.sprites.idle;
         this.animalCollisionLayer = animalCollisionLayer;
         this.state.speed = 2; 
         
@@ -349,7 +349,14 @@ export class AnimalModel extends CharacterModel {
                 walkLeft: 'assets/vaquita-spread-iz.png',
                 walkFront: 'assets/vaquita-spread.png',
                 walkBack: 'assets/vaquita-paatras-Sheet.png',
-                idle: 'assets/vaquita-comi-Sheet.png' // Asegúrate de que esto sea un sprite sheet
+                idle: 'assets/vaquita-comi-Sheet.png' 
+            },
+            'gallina': {
+                walkRight: 'assets/gallina-dere.png',
+                walkLeft: 'assets/gallina-izq.png',
+                walkFront: 'assets/gallina-front.png',
+                walkBack: 'assets/gallina-atras.png',
+                idle: 'assets/galli-comiendo.png'
             },
         };
         return spriteMap[animalType] || spriteMap['vaca']; // Devuelve sprites por defecto si no se encuentra el tipo
@@ -365,7 +372,7 @@ export class AnimalModel extends CharacterModel {
 
         // En el estado idle también actualiza el frame para la animación
         if (this.isIdle && this.frameCounter % 15 === 0) {
-            this.state.frame = (this.state.frame + 1) % 4; // Asegúrate de que esto coincida con la cantidad de frames en el sprite de idle
+            this.state.frame = (this.state.frame + 1) % 4; 
         }
     }
 
