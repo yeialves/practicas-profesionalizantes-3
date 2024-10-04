@@ -227,16 +227,32 @@ export class AnimalModel extends CharacterModel {
         super();
         this.animalType = animalType;
         this.sprites = this.getAnimalSprites(animalType);
-        this.state.sprite = this.sprites.idle;
         this.animalCollisionLayer = animalCollisionLayer;
-        this.state.speed = 2; 
-        
-        this.lastActivityTime = Date.now(); // Marca el tiempo de la última actividad
-        this.idleTime += 0.2; // Temporizador de inactividad
-        this.idleThreshold = 150; // Umbral para entrar en estado idle
-        this.idleWaitTime = 200; // Tiempo que el animal permanece en estado idle
-        this.idleWaitCounter = 0; // Contador para el tiempo que permanece en idle
-        this.isIdle = false; // Estado de si está en idle o no
+
+        // Define los tamaños para cada tipo de animal
+        this.animalSizes = {
+            vaca: { width: 64, height: 64 },
+            oveja: { width: 32, height: 32 },
+            // Añade más animales si es necesario
+        };
+
+        // Asignar tamaño según el tipo de animal
+        if (this.animalSizes[animalType]) {
+            this.state.width = this.animalSizes[animalType].width;
+            this.state.height = this.animalSizes[animalType].height;
+        } else {
+            console.error(`No se encontró el tamaño para el tipo de animal: ${animalType}`);
+        }
+
+        this.state.sprite = this.sprites.idle;
+        this.state.speed = 1;
+
+        this.lastActivityTime = Date.now();
+        this.idleTime = 0.2;
+        this.idleThreshold = 150;
+        this.idleWaitTime = 200;
+        this.idleWaitCounter = 0;
+        this.isIdle = false;
 
         this.setRandomDirection();
         this.directionChangeCounter = 0;
@@ -247,40 +263,41 @@ export class AnimalModel extends CharacterModel {
             console.warn('No se puede actualizar la posición: animalCollisionLayer no está configurada');
             return;
         }
-
+    
         this.directionChangeCounter++;
-
+    
         // Si el animal está en estado idle
         if (this.isIdle) {
             this.idleWaitCounter++;
             this.updateIdleState(); 
             
             if (this.idleWaitCounter >= this.idleWaitTime) {
-                this.exitIdleState(); 
+                this.exitIdleState(); // Sale del estado idle después de esperar el tiempo necesario
             }
             return; 
         }
-
+    
         // Si el tiempo de inactividad supera el umbral, el animal entra en estado idle
         if (this.idleTime >= this.idleThreshold) {
-            this.setIdleState();
+            this.setIdleState(); // Entra en estado idle
         } else {
-            // Si el animal no está en estado idle, lo movemos y actualizamos el sprite
-            this.moveCharacter();
+            // Si el animal no está en estado idle, se mueve y actualiza el sprite
+            this.moveCharacter(); 
             this.updateSprite(); 
             this.updateFrame(); 
-
-            this.idleTime++; 
+    
+            this.idleTime++; // Incrementa el tiempo de inactividad
         }
-
+    
         // Cambia la dirección aleatoriamente cada 150 actualizaciones
         if (this.directionChangeCounter > 150) {
             this.setRandomDirection();
             this.directionChangeCounter = 0;
-            this.idleTime = 0; 
+            this.idleTime = 0; // Reinicia el tiempo de idle
         }
     }
-
+    
+    
       // Método para establecer una dirección aleatoria
       setRandomDirection() {
         const directions = [
@@ -294,6 +311,9 @@ export class AnimalModel extends CharacterModel {
         this.setDirection(directions[randomIndex].x, directions[randomIndex].y);
         this.idleTime = 0; 
     }
+
+
+        
 
     // Método para cambiar el estado del animal a idle
     setIdleState() {
@@ -359,7 +379,7 @@ export class AnimalModel extends CharacterModel {
                 idle: 'assets/galli-comiendo.png'
             },
         };
-        return spriteMap[animalType] || spriteMap['vaca']; // Devuelve sprites por defecto si no se encuentra el tipo
+        return spriteMap[animalType] || spriteMap['vaca', 'gallina']; // Devuelve sprites por defecto si no se encuentra el tipo
     }
 
     updateFrame() {

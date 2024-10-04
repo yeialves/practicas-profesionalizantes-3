@@ -23,6 +23,8 @@ async function main() {
     let characterView = new CharacterView(context);
     let characterController = new CharacterController(characterModel, characterView);
 
+ 
+    let gallina;
     let vaca;
 
     try {
@@ -38,11 +40,16 @@ async function main() {
         characterView.drawMap(mapData, context, tileSize);
 
         vaca = new AnimalModel('vaca', characterModel.animalCollisionLayer);
+        gallina = new AnimalModel('gallina', characterModel.animalCollisionLayer);
     
 
         vaca.state.position_x = 128;
         vaca.state.position_y = 128;
         characterView.addAnimal(vaca);
+
+        gallina.state.position_x = 128;
+        gallina.state.position_y = 128;
+        characterView.addAnimal(gallina);
 
     } catch (error) {
         console.error('Error loading map:', error);
@@ -50,6 +57,7 @@ async function main() {
 
     function animateAnimals() {
         vaca.updatePosition(); // Actualiza la posición del animal
+        gallina.updatePosition(); // Actualiza la posición del animal
         characterView.update(); // Actualiza la vista para redibujar el animal en su nueva posición
         requestAnimationFrame(animateAnimals); // Llama a la animación de nuevo en el siguiente frame
     }
