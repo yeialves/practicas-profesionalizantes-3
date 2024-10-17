@@ -3,6 +3,7 @@ import { CharacterView } from './CharacterView.js';
 import { CharacterModel } from './CharacterModel.js';
 import { CharacterController } from './CharacterController.js';
 import { AnimalModel } from './CharacterModel.js';
+import { NPC } from './CharacterModel.js';
 
 async function main() {
     const container = document.getElementById('game-container');
@@ -26,6 +27,7 @@ async function main() {
  
     let gallina;
     let vaca;
+    let chica;
 
     try {
         const mapData = await characterModel.loadMap('mapa.tmj');
@@ -41,6 +43,7 @@ async function main() {
 
         vaca = new AnimalModel('vaca', characterModel.animalCollisionLayer);
         gallina = new AnimalModel('gallina', characterModel.animalCollisionLayer);
+        chica = new NPC('chica');
     
 
         vaca.state.position_x = 128;
@@ -50,6 +53,10 @@ async function main() {
         gallina.state.position_x = 128;
         gallina.state.position_y = 128;
         characterView.addAnimal(gallina);
+
+        chica.state.position_x = 128;
+        chica.state.position_y = 128;
+        characterView.addNpc(chica);
 
     } catch (error) {
         console.error('Error loading map:', error);

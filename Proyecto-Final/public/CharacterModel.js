@@ -228,7 +228,7 @@ export class AnimalModel extends CharacterModel {
         super();
 
         // Define animal sizes here
-        this.animalSizes = {
+        this.animalSizes = { 
             'gallina': { width: 32, height: 32 },
             'vaca': { width: 64, height: 64 },
         };
@@ -489,6 +489,73 @@ export class AnimalModel extends CharacterModel {
 
         return layer.data[tileIndex] > 0; // Retorna true si el tile está bloqueado
     }
-    
- 
+}
+
+export class NPC extends CharacterModel{
+    constructor(NpcType, initialX = 0, initialY = 0){
+        super()
+        // Define Npc sizes here
+        this.NpcSizes = { 
+            'chica': { width: 64, height: 64 },
+        };
+
+        // Check if the NpcType is valid
+        if (!this.NpcSizes[NpcType]) {
+            console.error(`Npc type '${NpcType}' is not defined.`);
+            return;
+        }
+
+        this.state = {
+            width: this.NpcSizes[NpcType].width,
+            height: this.NpcSizes[NpcType].height,
+            position_x: initialX,
+            position_y: initialY,
+            frame: 0,
+        };
+
+        this.NpcType = NpcType;
+        this.sprites = this.getAnimalSprites(NpcType); // Cambiado aquí
+
+        this.state.sprite = this.sprites.idle;
+    }
+
+    updateIdleState() {
+        this.state.sprite = this.sprites.idle; // Cambia al sprite idle
+        this.updateFrame(); // Actualiza el frame para la animación
+    }
+
+    getAnimalSprites(NpcType) {
+        const spriteMap = {
+            'chica': {
+                idle: 'assets/Chica-Walk-Front-Sheet-64x64.png' 
+            },
+        };
+        return spriteMap[NpcType] || spriteMap['chica']; // Devuelve sprites por defecto si no se encuentra el tipo
+    }
+
+    updateFrame() {
+        this.frameCounter++;
+
+        if (this.isIdle && this.frameCounter % 15 === 0) {
+            this.state.frame = (this.state.frame + 1) % 4; 
+        }
+    }
+
+    checkProximity() {
+        const distance = Math.sqrt(
+            Math.pow(this.state.position_x - this.position_x, 2) +
+            Math.pow(this.state.position_y - this.position_y, 2)
+        );
+
+        if (distance < 80 && !this.isNearChica) {
+            console.log("Felix se acerca a Chica!");
+            this.dispatchEvent(new CustomEvent('felixNearChica')); 
+        }
+
+        if (distance >= 80 && this.isNearChica) {
+            console.log("Felix se aleja de Chica!");
+            this.isNearChica = false;
+            this.alertShown = false;
+        }
+    }
 }

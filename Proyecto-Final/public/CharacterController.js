@@ -63,4 +63,6 @@ export class CharacterController {
         this.view.mapData = newMapData; // Actualiza la vista con el nuevo mapa
         this.view.update(); // Llama a la función de actualización para redibujar la pantalla con el nuevo mapa
     }
+
+    
 }
