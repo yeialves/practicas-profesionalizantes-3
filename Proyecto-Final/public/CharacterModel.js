@@ -4,7 +4,7 @@ export class CharacterModel extends EventTarget {
         this.state = {
             width: 64,
             height: 64,
-            position_x: 1000,
+            position_x: 1145,
             position_y: 300,
             frame: 0,
             speed: 3,

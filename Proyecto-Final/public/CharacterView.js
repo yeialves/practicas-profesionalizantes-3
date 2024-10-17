@@ -6,8 +6,8 @@ export class CharacterView extends HTMLElement {
         this.animals = [];
         this.npcs = []; // Inicializa la lista de NPCs
 
-        this.cameraWidth = 512;  
-        this.cameraHeight = 512;
+        this.cameraWidth = 640;  
+        this.cameraHeight = 480;
 
         this.loadedImages = {};
 

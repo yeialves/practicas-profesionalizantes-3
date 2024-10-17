@@ -14,8 +14,8 @@ async function main() {
     }
 
     let canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 640;
+    canvas.height = 480;
 
     container.appendChild(canvas);
     const context = canvas.getContext('2d');
