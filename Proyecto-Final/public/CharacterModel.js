@@ -138,7 +138,8 @@ export class CharacterModel extends EventTarget {
 
         return topLeft || topRight || bottomLeft || bottomRight; // Colisión si alguna esquina choca
     }
-
+      
+    
     // Verifica si un tile está bloqueado (tiene colisión)
     isTileBlocked(x, y) {
         const tileX = Math.floor(x / this.tileSize); // Calcula el índice del tile en x
@@ -223,40 +224,41 @@ export class CharacterModel extends EventTarget {
 }
 
 export class AnimalModel extends CharacterModel {
-    constructor(animalType, animalCollisionLayer) {
+    constructor(animalType, animalCollisionLayer, initialX = 0, initialY = 0) {
         super();
+
+        // Define animal sizes here
+        this.animalSizes = {
+            'gallina': { width: 32, height: 32 },
+            'vaca': { width: 64, height: 64 },
+        };
+
+        // Check if the animalType is valid
+        if (!this.animalSizes[animalType]) {
+            console.error(`Animal type '${animalType}' is not defined.`);
+            return;
+        }
+
+        this.state = {
+            width: this.animalSizes[animalType].width,
+            height: this.animalSizes[animalType].height,
+            position_x: initialX,
+            position_y: initialY,
+            frame: 0,
+            speed: 1,
+        };
+
         this.animalType = animalType;
         this.sprites = this.getAnimalSprites(animalType);
         this.animalCollisionLayer = animalCollisionLayer;
 
-        // Define los tamaños para cada tipo de animal
-        this.animalSizes = {
-            vaca: { width: 64, height: 64 },
-            oveja: { width: 32, height: 32 },
-            // Añade más animales si es necesario
-        };
-
-        // Asignar tamaño según el tipo de animal
-        if (this.animalSizes[animalType]) {
-            this.state.width = this.animalSizes[animalType].width;
-            this.state.height = this.animalSizes[animalType].height;
-        } else {
-            console.error(`No se encontró el tamaño para el tipo de animal: ${animalType}`);
-        }
-
         this.state.sprite = this.sprites.idle;
-        this.state.speed = 1;
 
-        this.lastActivityTime = Date.now();
-        this.idleTime = 0.2;
-        this.idleThreshold = 150;
-        this.idleWaitTime = 200;
-        this.idleWaitCounter = 0;
-        this.isIdle = false;
-
+        // Other initialization code...
         this.setRandomDirection();
         this.directionChangeCounter = 0;
     }
+
 
     updatePosition() {
         if (!this.animalCollisionLayer) {
@@ -311,8 +313,6 @@ export class AnimalModel extends CharacterModel {
         this.setDirection(directions[randomIndex].x, directions[randomIndex].y);
         this.idleTime = 0; 
     }
-
-
         
 
     // Método para cambiar el estado del animal a idle
@@ -424,6 +424,63 @@ export class AnimalModel extends CharacterModel {
         return topLeft || topRight || bottomLeft || bottomRight; // Colisión si alguna esquina choca
     }
 
+    checkCharacterCollision(character) {
+        const collides = this.isRectCollision(
+          this.state.position_x,
+          this.state.position_y,
+          this.state.width,
+          this.state.height,
+          character.state.position_x,
+          character.state.position_y,
+          character.state.width,
+          character.state.height
+        );
+      
+        if (collides) {
+          // Cambiar la dirección del animal y del personaje si colisionan
+          this.setRandomDirection();
+          character.setRandomDirection(); // Cambiar también la dirección del personaje
+          return true;
+        }
+      
+        return false;
+      }
+      
+      checkAnimalCollisions(animals) {
+        for (const otherAnimal of animals) {
+          if (otherAnimal !== this) {
+            const collides = this.isRectCollision(
+              this.state.position_x,
+              this.state.position_y,
+              this.state.width,
+              this.state.height,
+              otherAnimal.state.position_x,
+              otherAnimal.state.position_y,
+              otherAnimal.state.width,
+              otherAnimal.state.height
+            );
+      
+            if (collides) {
+              // Cambiar dirección de ambos animales al colisionar
+              this.setRandomDirection();
+              otherAnimal.setRandomDirection();
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+      
+      isRectCollision(x1, y1, width1, height1, x2, y2, width2, height2) {
+        return (
+          x1 < x2 + width2 &&
+          x1 + width1 > x2 &&
+          y1 < y2 + height2 &&
+          y1 + height1 > y2
+        );
+      }
+      
+
     // Método para verificar si un tile está bloqueado en una capa específica
     isTileBlocked(x, y, layer) {
         const tileX = Math.floor(x / this.tileSize); // Índice del tile en x
@@ -432,5 +489,6 @@ export class AnimalModel extends CharacterModel {
 
         return layer.data[tileIndex] > 0; // Retorna true si el tile está bloqueado
     }
+    
  
 }

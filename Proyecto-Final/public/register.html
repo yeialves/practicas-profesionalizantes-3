@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Registro</h1>
+    <div class="form-container">
+        <input type="text" id="register-username" placeholder="Nombre de usuario" required>
+        <input type="password" id="register-password" placeholder="Contraseña" required>
+        <button id="register-btn">Registrar</button>
+        <p id="register-message"></p>
+        <p>¿Tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
+    </div>
+
+    <script>
+        document.getElementById('register-btn').onclick = function () {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            fetch('/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'register', username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('register-message').textContent = data.message;
+            })
+            .catch(error => {
+                document.getElementById('register-message').textContent = error.message;
+            });
+        };
+    </script>
+</body>
+</html>

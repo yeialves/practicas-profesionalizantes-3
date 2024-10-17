@@ -1,0 +1,39 @@
+{
+    "users": [
+      {
+        "username": "Katia",
+        "password": "1234",
+        "level": 1
+      },
+      {
+        "username": "Yesi",
+        "password": "1234",
+        "level": 1
+      },
+      {
+        "username": "Felix",
+        "password": "1234",
+        "level": 1
+      },
+      {
+        "username": "Fido",
+        "password": "1234",
+        "level": 1
+      },
+      {
+        "username": "Gigi",
+        "password": "1234",
+        "level": 1
+      },
+      {
+        "username": "Mishka",
+        "password": "1234",
+        "level": 1
+      },
+      {
+        "username": "Chiqui",
+        "password": "1234",
+        "level": 1
+      }
+    ]
+  }

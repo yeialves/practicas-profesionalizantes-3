@@ -5,9 +5,47 @@ export class CharacterView extends HTMLElement {
         this.currentState = null;
         this.animals = [];
 
+        // Instancia de Chica
+        this.Chica = new this.Chica(300, 300, 'assets/Chica-Walk-Front-Sheet-64x64.png'); 
+        this.alertShown = false; 
+        this.isNearChica = false;
+
         // Tamaño de la cámara (el área visible alrededor del personaje)
         this.cameraWidth = 512;  
         this.cameraHeight = 512;
+
+        this.loadedImages = {};
+
+        // Crear un elemento de mensaje en pantalla
+        this.messageBox = document.createElement('div');
+        this.messageBox.style.position = 'absolute';
+        this.messageBox.style.top = '20px';
+        this.messageBox.style.left = '20px';
+        this.messageBox.style.padding = '10px';
+        this.messageBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        this.messageBox.style.color = 'white';
+        this.messageBox.style.display = 'none'; 
+        document.body.appendChild(this.messageBox);
+
+        // Event Listener
+        this.addEventListener('felixNearChica', () => {
+            if (!this.alertShown) {
+                this.showMessage("Holis"); 
+                this.alertShown = true;
+                this.isNearChica = true;
+            }
+        });
+    }
+
+     // Mostrar un mensaje en la pantalla
+     showMessage(message) {
+        this.messageBox.textContent = message;
+        this.messageBox.style.display = 'block';
+        
+        // Ocultar el mensaje despues de 3 segundos
+        setTimeout(() => {
+            this.messageBox.style.display = 'none';
+        }, 3000);
     }
 
     set state(newState) {
@@ -19,17 +57,38 @@ export class CharacterView extends HTMLElement {
         return this.currentState;
     }
 
+    Chica = class {
+        constructor(x, y, sprite) {
+            this.position_x = x; // Posición fija en x
+            this.position_y = y; // Posición fija en y
+            this.sprite = sprite; // Sprite de Chica
+            this.image = new Image();
+            this.image.src = sprite; // Carga el sprite de Chica
+        }
+    
+        draw(context) {
+            context.drawImage(this.image, this.position_x, this.position_y, 64, 64); 
+        }
+    }
+    
+
     update() {
         this.drawingContext.clearRect(0, 0, this.drawingContext.canvas.width, this.drawingContext.canvas.height);
     
         if (this.mapData) {
             this.drawMap(this.mapData, this.drawingContext, 64);
         } 
+
+        // Dibuja a Chica en su posición fija primero
+        this.Chica.draw(this.drawingContext); // Dibuja a Chica en su posición fija
     
         // Dibuja al personaje
         if (this.state) {
             this.drawCharacter(this.state);
         }
+
+        // Verifica la proximidad
+        this.checkProximity();
     
         // Verifica si this.mapData tiene la propiedad fileName
         if (this.mapData && this.mapData.fileName) {
@@ -45,18 +104,56 @@ export class CharacterView extends HTMLElement {
     }
 
     drawCharacter(state) {
-        const img = new Image();
-        img.src = state.sprite;
+        // Verifica si la imagen ya ha sido cargada
+        let img = this.loadedImages[state.sprite];
+        if (!img) {
+            img = new Image();
+            img.src = state.sprite;
+            // Cargar la imagen antes de dibujar
+            this.loadedImages[state.sprite] = img;
+        }
 
-        // Calcula la posición relativa a la cámara
-        const relativeX = state.position_x - (this.state.position_x - this.cameraWidth / 2);
-        const relativeY = state.position_y - (this.state.position_y - this.cameraHeight / 2);
+        img.onload = () => {
+            // Calcula la posición relativa a la cámara
+            const relativeX = state.position_x - (this.state.position_x - this.cameraWidth / 2);
+            const relativeY = state.position_y - (this.state.position_y - this.cameraHeight / 2);
+    
+            // Usa el tamaño específico del animal
+            const width = state.width || 64;  // Valor por defecto si no se encuentra
+            const height = state.height || 64; // Valor por defecto si no se encuentra
+    
+            this.drawingContext.drawImage(
+                img,
+                state.frame * width, 0, width, height, 
+                relativeX, relativeY, width, height
+            );
+        };
 
-        this.drawingContext.drawImage(
-            img,
-            state.frame * 64, 0, 64, 64, 
-            relativeX, relativeY, 64, 64
+        // Si la imagen ya está cargada, dibújala inmediatamente
+        if (img.complete) {
+            img.onload(); // Llama a onload manualmente si la imagen ya está cargada
+        }
+    }
+
+    checkProximity() {
+        // Verifica la proximidad entre Felix y Chica
+        const distance = Math.sqrt(
+            Math.pow(this.state.position_x - this.Chica.position_x, 2) +
+            Math.pow(this.state.position_y - this.Chica.position_y, 2)
         );
+    
+        // Si Felix está cerca de Chica y no se mostro el mensaje
+        if (distance < 80 && !this.isNearChica) {
+            console.log("Felix se acerca a Chica!");
+            this.dispatchEvent(new CustomEvent('felixNearChica')); 
+        }
+    
+        // Si Felix se aleja de Chica (fuera del rango) y estaba marcado como "cerca"
+        if (distance >= 80 && this.isNearChica) {
+            console.log("Felix se aleja de Chica!");
+            this.isNearChica = false; // Resetea la proximidad para permitir que se active nuevamente
+            this.alertShown = false;  // Resetea la alerta para permitir que el mensaje se muestre de nuevo
+        }
     }
   
 

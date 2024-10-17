@@ -54,13 +54,14 @@ async function main() {
     } catch (error) {
         console.error('Error loading map:', error);
     }
+    
 
     function animateAnimals() {
-        vaca.updatePosition(); // Actualiza la posición del animal
-        gallina.updatePosition(); // Actualiza la posición del animal
-        characterView.update(); // Actualiza la vista para redibujar el animal en su nueva posición
-        requestAnimationFrame(animateAnimals); // Llama a la animación de nuevo en el siguiente frame
-    }
+        if (vaca) vaca.updatePosition(); // Update position only if vaca is defined
+        if (gallina) gallina.updatePosition(); // Update position only if gallina is defined
+        characterView.update(); // Update the view to redraw the animals in their new positions
+        requestAnimationFrame(animateAnimals); // Call the animation again in the next frame
+    }    
     animateAnimals(); // Inicia la animación de los animales 
 
     characterController.connect();
