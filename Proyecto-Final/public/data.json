@@ -47,6 +47,12 @@
       "password": "1234",
       "level": 1,
       "inventory": []
+    },
+    {
+      "username": "Selena G",
+      "password": "1234",
+      "level": 1,
+      "inventory": []
     }
   ]
 }
