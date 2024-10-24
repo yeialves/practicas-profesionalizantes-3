@@ -27,3 +27,16 @@ html, body {
     background-color: #000;
 
 }
+
+#dialog-box {
+  display: none;
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  z-index: 100;
+}

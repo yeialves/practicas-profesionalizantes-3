@@ -491,11 +491,11 @@ export class AnimalModel extends CharacterModel {
     }
 }
 
-export class NPC extends CharacterModel{
-    constructor(NpcType, initialX = 0, initialY = 0){
-        super()
+export class NPC extends CharacterModel {
+    constructor(NpcType, initialX = 0, initialY = 0) {
+        super();
         // Define Npc sizes here
-        this.NpcSizes = { 
+        this.NpcSizes = {
             'chica': { width: 64, height: 64 },
         };
 
@@ -514,9 +514,10 @@ export class NPC extends CharacterModel{
         };
 
         this.NpcType = NpcType;
-        this.sprites = this.getAnimalSprites(NpcType); // Cambiado aquí
-
+        this.sprites = this.getNPCSprites(NpcType); // Cambiado aquí
         this.state.sprite = this.sprites.idle;
+        this.frameCounter = 0; // Inicializa frameCounter
+        this.isIdle = true; // Inicializa estado de inactividad
     }
 
     updateIdleState() {
@@ -524,10 +525,10 @@ export class NPC extends CharacterModel{
         this.updateFrame(); // Actualiza el frame para la animación
     }
 
-    getAnimalSprites(NpcType) {
+    getNPCSprites(NpcType) {
         const spriteMap = {
             'chica': {
-                idle: 'assets/Chica-Walk-Front-Sheet-64x64.png' 
+                idle: 'assets/Chica-Walk-Front-Sheet-64x64.png'
             },
         };
         return spriteMap[NpcType] || spriteMap['chica']; // Devuelve sprites por defecto si no se encuentra el tipo
@@ -541,21 +542,20 @@ export class NPC extends CharacterModel{
         }
     }
 
-    checkProximity() {
+    // Método para verificar proximidad con otro personaje
+    checkProximity(characterModel, range = 100) {
         const distance = Math.sqrt(
-            Math.pow(this.state.position_x - this.position_x, 2) +
-            Math.pow(this.state.position_y - this.position_y, 2)
+            Math.pow(this.state.position_x - characterModel.state.position_x, 2) + 
+            Math.pow(this.state.position_y - characterModel.state.position_y, 2)
         );
 
-        if (distance < 80 && !this.isNearChica) {
-            console.log("Felix se acerca a Chica!");
-            this.dispatchEvent(new CustomEvent('felixNearChica')); 
+        // Si la distancia es menor que el rango de proximidad, devuelve true
+        if (distance < range) {
+            console.log(`${this.NpcType} está cerca del personaje.`);
+            return true;
         }
 
-        if (distance >= 80 && this.isNearChica) {
-            console.log("Felix se aleja de Chica!");
-            this.isNearChica = false;
-            this.alertShown = false;
-        }
+        return false;
     }
 }
+

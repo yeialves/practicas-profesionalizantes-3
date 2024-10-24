@@ -21,7 +21,7 @@ async function main() {
     const context = canvas.getContext('2d');
 
     let characterModel = new CharacterModel();
-    let characterView = new CharacterView(context);
+    let characterView = new CharacterView(context, characterModel); // Pasa characterModel aquí
     let characterController = new CharacterController(characterModel, characterView);
 
  
@@ -71,8 +71,15 @@ async function main() {
     }    
     animateAnimals(); // Inicia la animación de los animales 
 
+    function animateNpcs() {
+        characterView.update(); // Update the view to redraw the Npcs in their new positions
+        requestAnimationFrame(animateNpcs); // Call the animation again in the next frame
+    }    
+    animateNpcs(); // Inicia la animación de los animales
+
     characterController.connect();
 }
 
 // Ejecuta la función main cuando la ventana se carga
 window.onload = main; 
+

@@ -16,7 +16,7 @@ if (!fs.existsSync(dataFilePath)) {
 }
 
 // Cargar los datos de la base de datos simulada
-const data = JSON.parse(fs.readFileSync(dataFilePath, 'utf-8'));
+let data = JSON.parse(fs.readFileSync(dataFilePath, 'utf-8'));
 
 const server = http.createServer((req, res) => {
     // Manejar solicitudes POST
@@ -32,11 +32,29 @@ const server = http.createServer((req, res) => {
                 const { action, username, password } = JSON.parse(body);
 
                 if (action === 'register') {
-                    // Lógica para registrar un nuevo usuario
-                    const newUser = { username, password, level: 1 };
+                    // Verificar si el usuario ya existe
+                    const userExists = data.users.some(user => user.username === username);
+                    if (userExists) {
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ message: 'El usuario ya existe.' }));
+                        return;
+                    }
+
+                    // Crear un nuevo usuario con inventario vacío y nivel 1
+                    const newUser = {
+                        username,
+                        password,
+                        level: 1,
+                        inventory: []  // Inventario vacío
+                    };
+
+                    // Agregar el nuevo usuario a la lista
                     data.users.push(newUser);
+
+                    // Guardar los datos actualizados en el archivo data.json
                     fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2)); // Almacena los datos en data.json
                     console.log('Nuevo usuario registrado:', username); // Log de registro
+
                     res.writeHead(201, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ message: 'Registro exitoso.' }));
 

@@ -1,42 +1,43 @@
 export class CharacterView extends HTMLElement {
-    constructor(drawingContext) {
-        super(); 
+    constructor(drawingContext, characterModel) {
+        super();
         this.drawingContext = drawingContext;
+        this.characterModel = characterModel; 
         this.currentState = null;
+        this.dialogBox = this.createDialogBox(); 
         this.animals = [];
-        this.npcs = []; // Inicializa la lista de NPCs
-
+        this.npcs = [];
+        
         this.cameraWidth = 640;  
         this.cameraHeight = 480;
-
         this.loadedImages = {};
-
-        this.messageBox = document.createElement('div');
-        this.messageBox.style.position = 'absolute';
-        this.messageBox.style.top = '20px';
-        this.messageBox.style.left = '20px';
-        this.messageBox.style.padding = '10px';
-        this.messageBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        this.messageBox.style.color = 'white';
-        this.messageBox.style.display = 'none'; 
-        document.body.appendChild(this.messageBox);
-
-        this.addEventListener('felixNearChica', () => {
-            if (!this.alertShown) {
-                this.showMessage("Holis"); 
-                this.alertShown = true;
-                this.isNearChica = true;
-            }
-        });
     }
 
-    showMessage(message) {
-        this.messageBox.textContent = message;
-        this.messageBox.style.display = 'block';
-        
+    // Método para crear el cuadro de diálogo
+    createDialogBox() {
+        const dialogBox = document.createElement('div');
+        dialogBox.style.position = 'absolute';
+        dialogBox.style.bottom = '20px'; // Ajusta según necesites
+        dialogBox.style.left = '50%';
+        dialogBox.style.transform = 'translateX(-50%)';
+        dialogBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        dialogBox.style.color = 'white';
+        dialogBox.style.padding = '10px';
+        dialogBox.style.borderRadius = '5px';
+        dialogBox.style.display = 'none'; // Oculto por defecto
+        document.body.appendChild(dialogBox);
+        return dialogBox;
+    }
+
+    // Método para mostrar el diálogo
+    showDialog(message) {
+        this.dialogBox.innerText = message; // Establece el mensaje
+        this.dialogBox.style.display = 'block'; // Muestra el cuadro de diálogo
+
+        // Oculta el diálogo después de un tiempo
         setTimeout(() => {
-            this.messageBox.style.display = 'none';
-        }, 3000);
+            this.dialogBox.style.display = 'none';
+        }, 3000); // Ajusta el tiempo según necesites
     }
 
     set state(newState) {
@@ -66,9 +67,14 @@ export class CharacterView extends HTMLElement {
                         this.drawCharacter(animal.state);
                     }
                 });
-                this.npcs.forEach(npc => {  // Dibuja los NPCs
-                    if (npc && npc.state) {
-                        this.drawCharacter(npc.state);
+
+                // Dibuja NPCs siempre
+                this.npcs.forEach(npc => {
+                    this.drawCharacter(npc.state); // Dibuja el NPC aquí
+
+                    // Verifica la proximidad y muestra el diálogo
+                    if (npc.checkProximity(this.characterModel)) {
+                        this.showDialog(`${npc.NpcType} está cerca del personaje.`);
                     }
                 });
             }
@@ -81,6 +87,10 @@ export class CharacterView extends HTMLElement {
             img = new Image();
             img.src = state.sprite;
             this.loadedImages[state.sprite] = img;
+
+            img.onerror = () => {
+                console.error(`Error loading image at ${state.sprite}`);
+            };
         }
 
         img.onload = () => {
