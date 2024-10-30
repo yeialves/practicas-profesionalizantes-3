@@ -53,6 +53,12 @@
       "password": "1234",
       "level": 1,
       "inventory": []
+    },
+    {
+      "username": "Candice",
+      "password": "1234",
+      "level": 1,
+      "inventory": []
     }
   ]
 }

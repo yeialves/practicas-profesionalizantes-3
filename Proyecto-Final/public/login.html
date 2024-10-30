@@ -4,48 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login.css"> <!-- Enlace al archivo CSS -->
 </head>
 <body>
-    <h1>Login</h1>
-    <form id="loginForm">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <button type="submit">Login</button>
+    <div class="form-container">
+        <h1 class="login-form-font">LOGIN</h1>
+        <form id="loginForm"> <!-- Asegúrate de que hay un elemento form aquí -->
+            <input type="text" id="username" class="custom-font" placeholder="USERNAME" required>
+            <input type="password" id="password" class="custom-font" placeholder="PASSWORD" required>
+            <button class="login-form-font" type="submit">Login</button>
+        </form>
+        <p id="login-message"></p>
         <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
-    </form>
+    </div>
 
     <script>
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el comportamiento por defecto del formulario
-
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        fetch('/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ action: 'login', username, password })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.redirect) {
-                // Redirigir a index.html si el inicio de sesión fue exitoso
-                window.location.href = data.redirect;
-            } else {
-                // Mostrar mensaje de error
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evitar el comportamiento por defecto del formulario
+    
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+    
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'login', username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Si la respuesta no es 2xx, lanzar un error
+                    return response.json().then(err => { throw new Error(err.message); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.redirect) {
+                    // Redirigir a index.html si el inicio de sesión fue exitoso
+                    window.location.href = data.redirect;
+                } else {
+                    // Mostrar mensaje de error
+                    document.getElementById('login-message').textContent = data.message;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('login-message').textContent = error.message; // Mostrar mensaje de error en el elemento p
+            });
         });
-    });
     </script>
 </body>
 </html>

@@ -11,6 +11,10 @@ export class CharacterView extends HTMLElement {
         this.cameraWidth = 640;  
         this.cameraHeight = 480;
         this.loadedImages = {};
+
+        this.frameCounter = 0; // Contador para el control de la animación
+        this.idleFrameRate = 10; // Velocidad para chica-idle (ajusta según necesites)
+        this.defaultFrameRate = 5; // Velocidad por defecto para otros estados
     }
 
     // Método para crear el cuadro de diálogo
@@ -51,35 +55,37 @@ export class CharacterView extends HTMLElement {
 
     update() {
         this.drawingContext.clearRect(0, 0, this.drawingContext.canvas.width, this.drawingContext.canvas.height);
-    
+        
         if (this.mapData) {
             this.drawMap(this.mapData, this.drawingContext, 64);
         } 
     
+        // Dibuja el personaje principal
         if (this.state) {
             this.drawCharacter(this.state);
         }
     
+        // Dibuja animales
         if (this.mapData && this.mapData.fileName) {
-            if (this.mapData.fileName === 'mapa.tmj') {
-                this.animals.forEach(animal => {
-                    if (animal && animal.state) {
-                        this.drawCharacter(animal.state);
-                    }
-                });
-
-                // Dibuja NPCs siempre
-                this.npcs.forEach(npc => {
-                    this.drawCharacter(npc.state); // Dibuja el NPC aquí
-
-                    // Verifica la proximidad y muestra el diálogo
-                    if (npc.checkProximity(this.characterModel)) {
-                        this.showDialog(`${npc.NpcType} está cerca del personaje.`);
-                    }
-                });
-            }
+            this.animals.forEach(animal => {
+                if (animal && animal.state) {
+                    this.drawCharacter(animal.state);
+                }
+            });
+    
+            // Dibuja NPCs siempre
+            this.npcs.forEach(npc => {
+                npc.updateIdleState(); // Asegúrate de que el NPC actualice su estado
+                this.drawCharacter(npc.state); // Dibuja el NPC aquí
+    
+                // Verifica la proximidad y muestra el diálogo
+                if (npc.checkProximity(this.characterModel)) {
+                    this.showDialog(`${npc.NpcType} : Holis Felix.`);
+                }
+            });
         }
     }
+    
 
     drawCharacter(state) {
         let img = this.loadedImages[state.sprite];
@@ -87,29 +93,37 @@ export class CharacterView extends HTMLElement {
             img = new Image();
             img.src = state.sprite;
             this.loadedImages[state.sprite] = img;
-
+    
             img.onerror = () => {
                 console.error(`Error loading image at ${state.sprite}`);
             };
+    
+            // Dibuja la imagen solo después de que se haya cargado
+            img.onload = () => {
+                this.renderCharacter(state, img);
+            };
+        } else {
+            this.renderCharacter(state, img);
         }
-
-        img.onload = () => {
-            const relativeX = state.position_x - (this.state.position_x - this.cameraWidth / 2);
-            const relativeY = state.position_y - (this.state.position_y - this.cameraHeight / 2);
     
-            const width = state.width || 64;
-            const height = state.height || 64;
-    
-            this.drawingContext.drawImage(
-                img,
-                state.frame * width, 0, width, height, 
-                relativeX, relativeY, width, height
-            );
-        };
-
+        // Si la imagen ya está cargada, dibuja inmediatamente
         if (img.complete) {
-            img.onload(); 
+            this.renderCharacter(state, img);
         }
+    }
+    
+    renderCharacter(state, img) {
+        const relativeX = state.position_x - (this.state.position_x - this.cameraWidth / 2);
+        const relativeY = state.position_y - (this.state.position_y - this.cameraHeight / 2);
+    
+        const width = state.width || 64;
+        const height = state.height || 64;
+    
+        this.drawingContext.drawImage(
+            img,
+            state.frame * width, 0, width, height, 
+            relativeX, relativeY, width, height
+        );
     }
 
     addAnimal(animalModel) {

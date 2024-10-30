@@ -16,7 +16,9 @@ export class CharacterModel extends EventTarget {
         this.tileSize = 64;
         this.frameCounter = 0; // Contador para los frames
 
-        this.animals = []; 
+        this.animals = [];
+        this.npcs = [];
+
     }
 
     updatePosition() {
@@ -87,6 +89,10 @@ export class CharacterModel extends EventTarget {
             this.state.position_y = newY;
             this.lastDirection = { ...this.direction }; // Guarda la última dirección de movimiento
         }
+
+        console.log(`NPC Position Updated - X: ${this.state.position_x}, Y: ${this.state.position_y}`);
+
+
     }
     
     handleIdleState() {
@@ -492,14 +498,12 @@ export class AnimalModel extends CharacterModel {
 }
 
 export class NPC extends CharacterModel {
-    constructor(NpcType, initialX = 0, initialY = 0) {
+    constructor(NpcType, initialX = 0, initialY = 0, speed = 1) {
         super();
-        // Define Npc sizes here
         this.NpcSizes = {
             'chica': { width: 64, height: 64 },
         };
 
-        // Check if the NpcType is valid
         if (!this.NpcSizes[NpcType]) {
             console.error(`Npc type '${NpcType}' is not defined.`);
             return;
@@ -514,10 +518,11 @@ export class NPC extends CharacterModel {
         };
 
         this.NpcType = NpcType;
-        this.sprites = this.getNPCSprites(NpcType); // Cambiado aquí
+        this.sprites = this.getNPCSprites(NpcType);
         this.state.sprite = this.sprites.idle;
         this.frameCounter = 0; // Inicializa frameCounter
         this.isIdle = true; // Inicializa estado de inactividad
+        this.speed = speed; // Establece la velocidad del NPC
     }
 
     updateIdleState() {
@@ -528,30 +533,29 @@ export class NPC extends CharacterModel {
     getNPCSprites(NpcType) {
         const spriteMap = {
             'chica': {
-                idle: 'assets/Chica-Walk-Front-Sheet-64x64.png'
+                idle: 'assets/Chica-Idle.png'
             },
         };
-        return spriteMap[NpcType] || spriteMap['chica']; // Devuelve sprites por defecto si no se encuentra el tipo
+        return spriteMap[NpcType] || spriteMap['chica'];
     }
 
     updateFrame() {
         this.frameCounter++;
 
-        if (this.isIdle && this.frameCounter % 15 === 0) {
+        // Cambia a un frame diferente cada 30 ticks (ajusta este número para más lentitud)
+        if (this.isIdle && this.frameCounter % 30 === 0) { 
             this.state.frame = (this.state.frame + 1) % 4; 
         }
     }
 
-    // Método para verificar proximidad con otro personaje
     checkProximity(characterModel, range = 100) {
         const distance = Math.sqrt(
             Math.pow(this.state.position_x - characterModel.state.position_x, 2) + 
             Math.pow(this.state.position_y - characterModel.state.position_y, 2)
         );
 
-        // Si la distancia es menor que el rango de proximidad, devuelve true
         if (distance < range) {
-            console.log(`${this.NpcType} está cerca del personaje.`);
+            console.log(`${this.NpcType}: Hola Felix.`);
             return true;
         }
 

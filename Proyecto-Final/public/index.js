@@ -54,8 +54,8 @@ async function main() {
         gallina.state.position_y = 128;
         characterView.addAnimal(gallina);
 
-        chica.state.position_x = 128;
-        chica.state.position_y = 128;
+        chica.state.position_x = 332;
+        chica.state.position_y = 288;
         characterView.addNpc(chica);
 
     } catch (error) {
