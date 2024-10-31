@@ -228,14 +228,12 @@ export class CharacterModel extends EventTarget {
 export class AnimalModel extends CharacterModel {
     constructor(animalType, animalCollisionLayer, initialX = 0, initialY = 0) {
         super();
-
-        // Define animal sizes here
+        
         this.animalSizes = { 
             'gallina': { width: 32, height: 32 },
             'vaca': { width: 64, height: 64 },
         };
 
-        // Check if the animalType is valid
         if (!this.animalSizes[animalType]) {
             console.error(`Animal type '${animalType}' is not defined.`);
             return;
@@ -256,10 +254,29 @@ export class AnimalModel extends CharacterModel {
 
         this.state.sprite = this.sprites.idle;
 
-        // Other initialization code...
         this.setRandomDirection();
         this.directionChangeCounter = 0;
+
+        // Temporizador y posición para soltar el huevo
+        this.eggDropTimer = 300; // 300 actualizaciones (5 segundos)
+        this.eggs = [];
+
+        // Carga la imagen del huevo solo una vez
+        this.eggImage = new Image();
+        this.eggImage.src = 'assets/huevillo.png';
+  
+        // Estado idle
+        this.isIdle = false;
+        this.idleTime = 0;
+        this.idleThreshold = 200;
+        this.idleWaitTime = 50;
+        this.idleWaitCounter = 0;
     }
+
+   // Modifica el temporizador para que sea fijo en 5 segundos
+   getRandomEggDropTime() {
+    return 300; // 300 actualizaciones para 5 segundos aproximadamente
+}
 
 
     updatePosition() {
@@ -267,43 +284,59 @@ export class AnimalModel extends CharacterModel {
             console.warn('No se puede actualizar la posición: animalCollisionLayer no está configurada');
             return;
         }
-    
+
         this.directionChangeCounter++;
-    
-        // Si el animal está en estado idle
+        
         if (this.isIdle) {
             this.idleWaitCounter++;
-            this.updateIdleState(); 
-            
+            this.updateIdleState();
+
             if (this.idleWaitCounter >= this.idleWaitTime) {
-                this.exitIdleState(); // Sale del estado idle después de esperar el tiempo necesario
+                this.exitIdleState();
             }
-            return; 
-        }
-    
-        // Si el tiempo de inactividad supera el umbral, el animal entra en estado idle
-        if (this.idleTime >= this.idleThreshold) {
-            this.setIdleState(); // Entra en estado idle
         } else {
-            // Si el animal no está en estado idle, se mueve y actualiza el sprite
-            this.moveCharacter(); 
-            this.updateSprite(); 
-            this.updateFrame(); 
-    
-            this.idleTime++; // Incrementa el tiempo de inactividad
+            this.moveCharacter();
+            this.updateSprite();
+            this.updateFrame();
+
+            this.idleTime++;
+            if (this.directionChangeCounter > 200) {
+                this.setRandomDirection();
+                this.directionChangeCounter = 0;
+                this.idleTime = 0;
+            }
+
+            if (this.idleTime >= this.idleThreshold) {
+                this.setIdleState();
+            }
         }
-    
-        // Cambia la dirección aleatoriamente cada 150 actualizaciones
-        if (this.directionChangeCounter > 150) {
-            this.setRandomDirection();
-            this.directionChangeCounter = 0;
-            this.idleTime = 0; // Reinicia el tiempo de idle
+
+        // Temporizador para soltar el huevo
+        this.eggDropTimer--;
+        if (this.eggDropTimer <= 0 && this.animalType === 'gallina') {
+            this.dropEgg();
+            this.eggDropTimer = this.getRandomEggDropTime();
         }
     }
-    
-    
-      // Método para establecer una dirección aleatoria
-      setRandomDirection() {
+
+    // Método para soltar un huevo en la posición actual de la gallina
+    dropEgg() {
+        const eggPosition = {
+            x: this.state.position_x,
+            y: this.state.position_y
+        };
+        this.eggs.push(eggPosition);
+        //console.log("Huevo soltado en:", eggPosition); // Confirmación en consola
+    }
+
+    // Dibuja los huevos sin volver a cargar la imagen
+    drawEggs(context) {
+        this.eggs.forEach(egg => {
+            context.drawImage(this.eggImage, egg.x, egg.y);
+        });
+    }
+
+    setRandomDirection() {
         const directions = [
             { x: 1, y: 0 }, 
             { x: -1, y: 0 }, 
@@ -315,28 +348,24 @@ export class AnimalModel extends CharacterModel {
         this.setDirection(directions[randomIndex].x, directions[randomIndex].y);
         this.idleTime = 0; 
     }
-        
-
-    // Método para cambiar el estado del animal a idle
+    
     setIdleState() {
-        this.isIdle = true; // Establece el estado idle
-        this.direction = { x: 0, y: 0 }; // Deja de moverse
-        this.updateIdleState(); // Cambia el sprite al estado idle
-        this.idleWaitCounter = 0; // Reinicia el contador de espera en idle
+        this.isIdle = true;
+        this.direction = { x: 0, y: 0 };
+        this.updateIdleState();
+        this.idleWaitCounter = 0;
     }
 
-    // Método para salir del estado idle y volver a moverse
     exitIdleState() {
-        this.isIdle = false; // Sale del estado idle
-        this.setRandomDirection(); // Elige una nueva dirección aleatoria para moverse
-        this.idleTime = 0; // Resetea el temporizador de inactividad
+        this.isIdle = false;
+        this.setRandomDirection();
+        this.idleTime = 0;
         this.directionChangeCounter = 0;
     }
 
-    // Método cuando el animal está en estado idle (sin moverse)
     updateIdleState() {
-        this.state.sprite = this.sprites.idle; // Cambia al sprite idle
-        this.updateFrame(); // Actualiza el frame para la animación
+        this.state.sprite = this.sprites.idle;
+        this.updateFrame();
     }
 
     moveCharacter() {
@@ -358,12 +387,10 @@ export class AnimalModel extends CharacterModel {
             this.state.position_y = newY;
             this.lastDirection = { ...this.direction };
         } else {
-            // Si hay una colisión, cambia automáticamente de dirección
             this.setRandomDirection();
         }
     }
 
-    // Función para obtener los sprites según el tipo de animal
     getAnimalSprites(animalType) {
         const spriteMap = {
             'vaca': {
@@ -381,26 +408,20 @@ export class AnimalModel extends CharacterModel {
                 idle: 'assets/galli-comiendo.png'
             },
         };
-        return spriteMap[animalType] || spriteMap['vaca', 'gallina']; // Devuelve sprites por defecto si no se encuentra el tipo
+        return spriteMap[animalType] || spriteMap['gallina'];
     }
 
     updateFrame() {
         this.frameCounter++;
-
-        // Cambia de frame cada 15 actualizaciones solo si no está en idle
-        if (!this.isIdle && this.frameCounter % 15 === 0) {
-            this.state.frame = (this.state.frame + 1) % 4; // Cambia de frame cada 15 actualizaciones
-        }
-
-        // En el estado idle también actualiza el frame para la animación
-        if (this.isIdle && this.frameCounter % 15 === 0) {
-            this.state.frame = (this.state.frame + 1) % 4; 
+        if (this.frameCounter % 15 === 0) {
+            this.state.frame = (this.state.frame + 1) % 4;
         }
     }
 
-    // Método para actualizar el sprite según la dirección
     updateSprite() {
-        if (this.direction.x > 0) {
+        if (this.isIdle) {
+            this.state.sprite = this.sprites.idle;
+        } else if (this.direction.x > 0) {
             this.state.sprite = this.sprites.walkRight;
         } else if (this.direction.x < 0) {
             this.state.sprite = this.sprites.walkLeft;
@@ -408,90 +429,28 @@ export class AnimalModel extends CharacterModel {
             this.state.sprite = this.sprites.walkFront;
         } else if (this.direction.y < 0) {
             this.state.sprite = this.sprites.walkBack;
-        } else {
-            this.state.sprite = this.sprites.idle; // Cambia a idle si no hay movimiento
         }
     }
 
-    // Sobrescribe el método isCollision para usar la capa de colisiones de animales
     isCollision(newX, newY) {
-        if (!this.animalCollisionLayer) return false; // Si no hay capa de colisiones para animales, no hay colisión
+        if (!this.animalCollisionLayer) return false;
 
-        // Verifica si alguna esquina del animal choca con un tile bloqueado en la capa de colisiones de animales
         const topLeft = this.isTileBlocked(newX, newY, this.animalCollisionLayer);
         const topRight = this.isTileBlocked(newX + this.state.width - 1, newY, this.animalCollisionLayer);
         const bottomLeft = this.isTileBlocked(newX, newY + this.state.height - 1, this.animalCollisionLayer);
         const bottomRight = this.isTileBlocked(newX + this.state.width - 1, newY + this.state.height - 1, this.animalCollisionLayer);
 
-        return topLeft || topRight || bottomLeft || bottomRight; // Colisión si alguna esquina choca
+        return topLeft || topRight || bottomLeft || bottomRight;
     }
 
-    checkCharacterCollision(character) {
-        const collides = this.isRectCollision(
-          this.state.position_x,
-          this.state.position_y,
-          this.state.width,
-          this.state.height,
-          character.state.position_x,
-          character.state.position_y,
-          character.state.width,
-          character.state.height
-        );
-      
-        if (collides) {
-          // Cambiar la dirección del animal y del personaje si colisionan
-          this.setRandomDirection();
-          character.setRandomDirection(); // Cambiar también la dirección del personaje
-          return true;
-        }
-      
-        return false;
-      }
-      
-      checkAnimalCollisions(animals) {
-        for (const otherAnimal of animals) {
-          if (otherAnimal !== this) {
-            const collides = this.isRectCollision(
-              this.state.position_x,
-              this.state.position_y,
-              this.state.width,
-              this.state.height,
-              otherAnimal.state.position_x,
-              otherAnimal.state.position_y,
-              otherAnimal.state.width,
-              otherAnimal.state.height
-            );
-      
-            if (collides) {
-              // Cambiar dirección de ambos animales al colisionar
-              this.setRandomDirection();
-              otherAnimal.setRandomDirection();
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-      
-      isRectCollision(x1, y1, width1, height1, x2, y2, width2, height2) {
-        return (
-          x1 < x2 + width2 &&
-          x1 + width1 > x2 &&
-          y1 < y2 + height2 &&
-          y1 + height1 > y2
-        );
-      }
-      
-
-    // Método para verificar si un tile está bloqueado en una capa específica
     isTileBlocked(x, y, layer) {
-        const tileX = Math.floor(x / this.tileSize); // Índice del tile en x
-        const tileY = Math.floor(y / this.tileSize); // Índice del tile en y
-        const tileIndex = tileY * layer.width + tileX; // Índice en el array de tiles
-
-        return layer.data[tileIndex] > 0; // Retorna true si el tile está bloqueado
+        const tileX = Math.floor(x / this.tileSize);
+        const tileY = Math.floor(y / this.tileSize);
+        const tileIndex = tileY * layer.width + tileX;
+        return layer.data[tileIndex] > 0;
     }
 }
+
 
 export class NPC extends CharacterModel {
     constructor(NpcType, initialX = 0, initialY = 0, speed = 1) {
@@ -549,6 +508,10 @@ export class NPC extends CharacterModel {
             Math.pow(this.state.position_x - characterModel.state.position_x, 2) + 
             Math.pow(this.state.position_y - characterModel.state.position_y, 2)
         );
+
+        if (distance < range) {
+            return true;
+        }
 
         return false;
     }
