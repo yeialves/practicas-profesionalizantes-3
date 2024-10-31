@@ -21,7 +21,7 @@ async function main() {
     const context = canvas.getContext('2d');
 
     let characterModel = new CharacterModel();
-    let characterView = new CharacterView(context, characterModel); // Pasa characterModel aquí
+    let characterView = new CharacterView(context, characterModel); 
     let characterController = new CharacterController(characterModel, characterView);
 
  
@@ -62,18 +62,18 @@ async function main() {
         console.error('Error loading map:', error);
     }
     
-
     function animateAnimals() {
-        if (vaca) vaca.updatePosition(); // Update position only if vaca is defined
-        if (gallina) gallina.updatePosition(); // Update position only if gallina is defined
-        characterView.update(); // Update the view to redraw the animals in their new positions
-        requestAnimationFrame(animateAnimals); // Call the animation again in the next frame
+        if (vaca) vaca.updatePosition(); 
+        if (gallina) gallina.updatePosition(); 
+        characterView.update(); 
+        
+        requestAnimationFrame(animateAnimals); 
     }    
     animateAnimals(); // Inicia la animación de los animales 
 
     function animateNpcs() {
-        characterView.update(); // Update the view to redraw the Npcs in their new positions
-        requestAnimationFrame(animateNpcs); // Call the animation again in the next frame
+        characterView.update(); 
+        requestAnimationFrame(animateNpcs); 
     }    
     animateNpcs(); // Inicia la animación de los animales
 

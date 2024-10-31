@@ -94,10 +94,6 @@ export class CharacterView extends HTMLElement {
             img.src = state.sprite;
             this.loadedImages[state.sprite] = img;
     
-            img.onerror = () => {
-                console.error(`Error loading image at ${state.sprite}`);
-            };
-    
             // Dibuja la imagen solo después de que se haya cargado
             img.onload = () => {
                 this.renderCharacter(state, img);

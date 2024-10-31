@@ -6,7 +6,8 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #9575cd; 
+  background: url("Img/fondo.jpg") no-repeat center center fixed;
+  background-size: cover; 
 }
   
 .game-container {

@@ -89,10 +89,6 @@ export class CharacterModel extends EventTarget {
             this.state.position_y = newY;
             this.lastDirection = { ...this.direction }; // Guarda la última dirección de movimiento
         }
-
-        console.log(`NPC Position Updated - X: ${this.state.position_x}, Y: ${this.state.position_y}`);
-
-
     }
     
     handleIdleState() {
@@ -553,11 +549,6 @@ export class NPC extends CharacterModel {
             Math.pow(this.state.position_x - characterModel.state.position_x, 2) + 
             Math.pow(this.state.position_y - characterModel.state.position_y, 2)
         );
-
-        if (distance < range) {
-            console.log(`${this.NpcType}: Hola Felix.`);
-            return true;
-        }
 
         return false;
     }
