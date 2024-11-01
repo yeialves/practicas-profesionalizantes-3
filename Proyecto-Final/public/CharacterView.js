@@ -53,20 +53,27 @@ export class CharacterView extends HTMLElement {
         return this.currentState;
     }
 
+    setMapData(mapData) {
+    this.mapData = mapData;
+    this.shouldDrawAnimalsAndNpcs = (mapData.fileName === 'mapa.tmj');
+    }
+
+
     update() {
         this.drawingContext.clearRect(0, 0, this.drawingContext.canvas.width, this.drawingContext.canvas.height);
-        
+    
         if (this.mapData) {
             this.drawMap(this.mapData, this.drawingContext, 64);
-        } 
+        }
     
         // Dibuja el personaje principal
         if (this.state) {
             this.drawCharacter(this.state);
         }
     
-        // Dibuja animales
-        if (this.mapData && this.mapData.fileName) {
+        // Verifica si el mapa actual es 'mapa.tmj' antes de dibujar animales y NPCs
+        if (this.mapData && this.mapData.fileName === 'mapa.tmj') {
+            // Dibuja animales
             this.animals.forEach(animal => {
                 if (animal && animal.state) {
                     this.drawCharacter(animal.state);
@@ -84,7 +91,7 @@ export class CharacterView extends HTMLElement {
                 }
             });
         }
-    }
+    }    
     
 
     drawCharacter(state) {

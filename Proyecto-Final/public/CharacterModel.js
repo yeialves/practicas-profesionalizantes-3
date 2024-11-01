@@ -257,14 +257,7 @@ export class AnimalModel extends CharacterModel {
         this.setRandomDirection();
         this.directionChangeCounter = 0;
 
-        // Temporizador y posición para soltar el huevo
-        this.eggDropTimer = 300; // 300 actualizaciones (5 segundos)
-        this.eggs = [];
-
-        // Carga la imagen del huevo solo una vez
-        this.eggImage = new Image();
-        this.eggImage.src = 'assets/huevillo.png';
-  
+       
         // Estado idle
         this.isIdle = false;
         this.idleTime = 0;
@@ -273,11 +266,10 @@ export class AnimalModel extends CharacterModel {
         this.idleWaitCounter = 0;
     }
 
-   // Modifica el temporizador para que sea fijo en 5 segundos
-   getRandomEggDropTime() {
-    return 300; // 300 actualizaciones para 5 segundos aproximadamente
-}
-
+    // Modifica el temporizador para que sea aleatorio entre 3 y 7 segundos
+    getRandomEggDropTime() {
+        return Math.floor(Math.random() * (400 - 200 + 1)) + 200; // Entre 200 y 400 actualizaciones
+    }
 
     updatePosition() {
         if (!this.animalCollisionLayer) {
@@ -311,30 +303,9 @@ export class AnimalModel extends CharacterModel {
             }
         }
 
-        // Temporizador para soltar el huevo
-        this.eggDropTimer--;
-        if (this.eggDropTimer <= 0 && this.animalType === 'gallina') {
-            this.dropEgg();
-            this.eggDropTimer = this.getRandomEggDropTime();
-        }
     }
 
-    // Método para soltar un huevo en la posición actual de la gallina
-    dropEgg() {
-        const eggPosition = {
-            x: this.state.position_x,
-            y: this.state.position_y
-        };
-        this.eggs.push(eggPosition);
-        //console.log("Huevo soltado en:", eggPosition); // Confirmación en consola
-    }
 
-    // Dibuja los huevos sin volver a cargar la imagen
-    drawEggs(context) {
-        this.eggs.forEach(egg => {
-            context.drawImage(this.eggImage, egg.x, egg.y);
-        });
-    }
 
     setRandomDirection() {
         const directions = [
@@ -450,7 +421,6 @@ export class AnimalModel extends CharacterModel {
         return layer.data[tileIndex] > 0;
     }
 }
-
 
 export class NPC extends CharacterModel {
     constructor(NpcType, initialX = 0, initialY = 0, speed = 1) {
