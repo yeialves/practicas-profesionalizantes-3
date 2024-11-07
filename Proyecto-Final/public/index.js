@@ -24,7 +24,8 @@ async function main() {
     let characterView = new CharacterView(context, characterModel); 
     let characterController = new CharacterController(characterModel, characterView);
 
- 
+
+
     let gallina;
     let vaca;
     let chica;
@@ -44,7 +45,6 @@ async function main() {
         vaca = new AnimalModel('vaca', characterModel.animalCollisionLayer);
         gallina = new AnimalModel('gallina', characterModel.animalCollisionLayer);
         chica = new NPC('chica');
-    
 
         vaca.state.position_x = 128;
         vaca.state.position_y = 128;
@@ -61,7 +61,7 @@ async function main() {
     } catch (error) {
         console.error('Error loading map:', error);
     }
-    
+
     function animateAnimals() {
         if (vaca) vaca.updatePosition(); 
         if (gallina) gallina.updatePosition(); 
@@ -75,11 +75,10 @@ async function main() {
         characterView.update(); 
         requestAnimationFrame(animateNpcs); 
     }    
-    animateNpcs(); // Inicia la animación de los animales
+    animateNpcs(); // Inicia la animación de los NPCs
 
     characterController.connect();
 }
 
 // Ejecuta la función main cuando la ventana se carga
 window.onload = main; 
-

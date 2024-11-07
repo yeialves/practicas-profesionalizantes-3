@@ -61,6 +61,7 @@ const server = http.createServer((req, res) => {
                 } else if (action === 'login') {
                     const user = data.users.find(user => user.username === username && user.password === password);
                     if (user) {
+                        activeUser = user; 
                         console.log('Inicio de sesión exitoso para:', username); // Log de inicio de sesión exitoso
                         res.writeHead(200, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify({ message: 'Inicio de sesión exitoso.', redirect: 'index.html' })); // Redirigir a index.html

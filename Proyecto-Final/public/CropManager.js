@@ -1,7 +1,8 @@
 export class CropManager {
-    constructor(view, model) {
+    constructor(view, model, activeUser) { // Asegúrate de pasar el usuario activo al constructor
         this.view = view;
         this.model = model;
+        this.activeUser = activeUser; // Almacena el usuario activo
         this.cropStage = 'initial';
         this.cropGrowthTimer = 0;
         this.growthInterval = null;
@@ -57,7 +58,6 @@ export class CropManager {
         const crops = ['carrot', 'choclo', 'trigo'];
         const counts = { 'carrot': 0, 'choclo': 0, 'trigo': 0 };
     
-     
         counts['carrot'] = 4;
         counts['choclo'] = 4;
         counts['trigo'] = 4;
@@ -75,7 +75,7 @@ export class CropManager {
         for (let crop of crops) {
             counts[crop] = Math.min(counts[crop], 8);
         }
-    
+
         // Crear marcador de recolección para cada tipo con un índice único
         let index = 0;
         for (let [crop, count] of Object.entries(counts)) {
@@ -84,7 +84,6 @@ export class CropManager {
                 index++;  // Incrementar el índice para la siguiente posición
             }
         }
-
     
         // Reiniciar estado de cultivo
         this.cropStage = 'initial';
@@ -149,7 +148,6 @@ export class CropManager {
             document.body.removeChild(marker);
         }, 1500);
     }    
-    
     
     updateCultivoImages() {
         console.log('Actualizando imágenes de cultivo...');
