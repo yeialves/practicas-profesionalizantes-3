@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="icon" href="data:,">
     <title>Fairytale</title>
-
 </head>
 <body>
-    <img id="tiles" src="tiles.png"  style="display:none;" />
-    <div class="game-container" id = "game-container">
-    <script type="module" src="index.js"></script>
+    <img id="tiles" src="/assets/tiles.png" style="display:none;" />
+    <div class="game-container" id="game-container">
+        <button id="logoutButton">Cerrar sesión</button> 
+        <p id="logout-message" style="color: red;"></p>
+        <script type="module" src="/js/index.js"></script>
+    </div>
     <div id="dialog-box" style="display: none; position: absolute; top: 50px; left: 50px; background: rgba(0, 0, 0, 0.8); color: white; padding: 10px; border-radius: 5px;">
         <p id="dialog-text"></p>
-     </div
+    </div>
 </body>
 </html>
+

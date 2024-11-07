@@ -55,7 +55,7 @@ export class CharacterView extends HTMLElement {
 
     setMapData(mapData) {
     this.mapData = mapData;
-    this.shouldDrawAnimalsAndNpcs = (mapData.fileName === 'mapa.tmj');
+    this.shouldDrawAnimalsAndNpcs = (mapData.fileName === '/maps/mapa.tmj');
     }
 
 
@@ -72,7 +72,7 @@ export class CharacterView extends HTMLElement {
         }
     
         // Verifica si el mapa actual es 'mapa.tmj' antes de dibujar animales y NPCs
-        if (this.mapData && this.mapData.fileName === 'mapa.tmj') {
+        if (this.mapData && this.mapData.fileName === '/maps/mapa.tmj') {
             // Dibuja animales
             this.animals.forEach(animal => {
                 if (animal && animal.state) {

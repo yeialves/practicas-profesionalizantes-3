@@ -24,7 +24,7 @@ const server = http.createServer((req, res) => {
         let body = '';
 
         req.on('data', chunk => {
-            body += chunk.toString(); // Convertir el Buffer a cadena
+            body += chunk.toString(); 
         });
 
         req.on('end', () => {
@@ -64,7 +64,7 @@ const server = http.createServer((req, res) => {
                         activeUser = user; 
                         console.log('Inicio de sesión exitoso para:', username); // Log de inicio de sesión exitoso
                         res.writeHead(200, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ message: 'Inicio de sesión exitoso.', redirect: 'index.html' })); // Redirigir a index.html
+                        res.end(JSON.stringify({ message: 'Inicio de sesión exitoso.', redirect: 'img/index.html' })); // Redirigir a index.html
                     } else {
                         console.log('Inicio de sesión fallido para:', username); // Log de inicio de sesión fallido
                         res.writeHead(401, { 'Content-Type': 'application/json' });
@@ -82,7 +82,14 @@ const server = http.createServer((req, res) => {
         });
     } else {
         // Manejar solicitudes GET para servir archivos estáticos
-        const filePath = path.join(__dirname, req.url === '/' ? 'login.html' : req.url);
+        let filePath = path.join(__dirname, 'public', req.url);
+
+        // Si la URL está vacía, servir el login.html
+        if (req.url === '/') {
+            filePath = path.join(__dirname, 'public', 'img/login.html');
+        }
+
+        // Determinar la extensión del archivo y su tipo de contenido
         const extname = path.extname(filePath);
         let contentType = 'text/html';
 
@@ -106,14 +113,16 @@ const server = http.createServer((req, res) => {
                 contentType = 'image/gif';
                 break;
             default:
+                contentType = 'text/html';
                 break;
         }
 
+        // Leer el archivo desde la ruta calculada
         fs.readFile(filePath, (error, content) => {
             if (error) {
-                console.error('Error reading file:', error); // Log the error
+                console.error('Error al leer el archivo:', error);
                 res.writeHead(500);
-                res.end(`Error interno del servidor: ${error.message}`); // Provide a more descriptive message
+                res.end(`Error interno del servidor: ${error.message}`);
                 return;
             }
             res.writeHead(200, { 'Content-Type': contentType });

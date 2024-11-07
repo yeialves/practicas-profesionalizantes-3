@@ -55,16 +55,16 @@ export class CharacterModel extends EventTarget {
     
         // Verificar cambio de mapa en el borde derecho
         if (isOnRightEdge && isOnCaminoLayer) {
-            this.loadNewMap('prueba.tmj', 0, 300);
+            this.loadNewMap('/maps/prueba.tmj', 0, 300);
         // Verificar cambio de mapa en el borde izquierdo
         } else if (isOnLeftEdge && isOnCaminoLayer) {
-            this.loadNewMap('mapa.tmj', 1740, 300);
+            this.loadNewMap('/maps/mapa.tmj', 1740, 300);
         // Verificar cambio de mapa en el borde superior
         } else if (isOnTopEdge && isOnCaminoLayer) {
-            this.loadNewMap('prueba.tmj', 800, 830);
+            this.loadNewMap('/maps/prueba.tmj', 800, 830);
         // Verificar cambio de mapa en el borde inferior
         } else if (isOnBottomEdge && isOnCaminoLayer) {
-            this.loadNewMap('forest.tmj', 740, 1);
+            this.loadNewMap('/maps/forest.tmj', 740, 1);
         }
     }
 
@@ -99,24 +99,24 @@ export class CharacterModel extends EventTarget {
         if (!this.state.isIdle) {
             // Cambia el sprite según la dirección del movimiento
             if (this.direction.x > 0) {
-                this.state.sprite = 'assets/Felix-Walk-Right-Sheet-64x64.png';
+                this.state.sprite = '/assets/Felix-Walk-Right-Sheet-64x64.png';
             } else if (this.direction.x < 0) {
-                this.state.sprite = 'assets/Felix-Walk-Left-Sheet-64x64.png';
+                this.state.sprite = '/assets/Felix-Walk-Left-Sheet-64x64.png';
             } else if (this.direction.y > 0) {
-                this.state.sprite = 'assets/Felix-Walk-Front-Sheet-64x64.png';
+                this.state.sprite = '/assets/Felix-Walk-Front-Sheet-64x64.png';
             } else if (this.direction.y < 0) {
-                this.state.sprite = 'assets/Felix-Walk-Back-Sheet-64x64.png';
+                this.state.sprite = '/assets/Felix-Walk-Back-Sheet-64x64.png';
             }
         } else {
             // Cambia al sprite idle basado en la última dirección de movimiento
             if (this.lastDirection.x > 0) {
-                this.state.sprite = 'assets/Felix-Right-Idel-Sheet.png';
+                this.state.sprite = '/assets/Felix-Right-Idel-Sheet.png';
             } else if (this.lastDirection.x < 0) {
-                this.state.sprite = 'assets/Felix-Left-Idel-Sheet.png';
+                this.state.sprite = '/assets/Felix-Left-Idel-Sheet.png';
             } else if (this.lastDirection.y > 0) {
-                this.state.sprite = 'assets/Felix-Front-Idel-Sheet.png';
+                this.state.sprite = '/assets/Felix-Front-Idel-Sheet.png';
             } else if (this.lastDirection.y < 0) {
-                this.state.sprite = 'assets/Felix-Back-Idel-Sheet.png';
+                this.state.sprite = '/assets/Felix-Back-Idel-Sheet.png';
             }
         }
     }
@@ -365,18 +365,18 @@ export class AnimalModel extends CharacterModel {
     getAnimalSprites(animalType) {
         const spriteMap = {
             'vaca': {
-                walkRight: 'assets/vaquita-spread-dere.png',
-                walkLeft: 'assets/vaquita-spread-iz.png',
-                walkFront: 'assets/vaquita-spread.png',
-                walkBack: 'assets/vaquita-paatras-Sheet.png',
-                idle: 'assets/vaquita-comi-Sheet.png' 
+                walkRight: '../assets/vaquita-spread-dere.png',
+                walkLeft: '../assets/vaquita-spread-iz.png',
+                walkFront: '../assets/vaquita-spread.png',
+                walkBack: '../assets/vaquita-paatras-Sheet.png',
+                idle: '../assets/vaquita-comi-Sheet.png' 
             },
             'gallina': {
-                walkRight: 'assets/gallina-dere.png',
-                walkLeft: 'assets/gallina-izq.png',
-                walkFront: 'assets/gallina-front.png',
-                walkBack: 'assets/gallina-atras.png',
-                idle: 'assets/galli-comiendo.png'
+                walkRight: '../assets/gallina-dere.png',
+                walkLeft: '../assets/gallina-izq.png',
+                walkFront: '../assets/gallina-front.png',
+                walkBack: '../assets/gallina-atras.png',
+                idle: '../assets/galli-comiendo.png'
             },
         };
         return spriteMap[animalType] || spriteMap['gallina'];
@@ -458,7 +458,7 @@ export class NPC extends CharacterModel {
     getNPCSprites(NpcType) {
         const spriteMap = {
             'chica': {
-                idle: 'assets/Chica-Idle.png'
+                idle: '../assets/Chica-Idle.png'
             },
         };
         return spriteMap[NpcType] || spriteMap['chica'];

@@ -31,7 +31,7 @@ async function main() {
     let chica;
 
     try {
-        const mapData = await characterModel.loadMap('mapa.tmj');
+        const mapData = await characterModel.loadMap('/maps/mapa.tmj');
         if (!mapData) {
             throw new Error('No se pudo cargar el mapa. Los datos son nulos.');
         }

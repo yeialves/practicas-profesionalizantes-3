@@ -124,7 +124,7 @@ export class CropManager {
     
         // Crear imagen de cultivo
         const cropImage = document.createElement('img');
-        cropImage.src = `assets/${cropType}.png`;
+        cropImage.src = `/assets/${cropType}.png`;
         cropImage.style.width = '20px';
         cropImage.style.height = '20px';
         cropImage.style.marginRight = '5px';

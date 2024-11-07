@@ -14,13 +14,13 @@ export class CharacterController {
             s: false,
             d: false, 
         };
-
        
     }
 
     connect() {
         document.addEventListener('keydown', (event) => this.handleKeyDown(event)); 
         document.addEventListener('keyup', (event) => this.handleKeyUp(event)); 
+        document.getElementById('logoutButton').addEventListener('click', () => this.handleLogout()); 
         this.animate(); 
         this.cropManager.startCropGrowth(); // Inicia el crecimiento de cultivos
     }
@@ -37,7 +37,6 @@ export class CharacterController {
             this.cropManager.collectCrops();
         }
     }
-    
 
     handleKeyUp(event) {
         if (event.key === 'w') this.keys.w = false;
@@ -68,4 +67,24 @@ export class CharacterController {
         this.view.update(); 
     }
 
+    handleLogout() {
+        fetch('/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action: 'logout' })
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/img/login.html'; // Redirigir a login
+            } else {
+                document.getElementById('logout-message').textContent = 'Error al cerrar sesión.';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('logout-message').textContent = 'Error al cerrar sesión.';
+        });
+    }
 }
