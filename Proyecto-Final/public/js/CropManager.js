@@ -98,6 +98,9 @@ export class CropManager {
             }
             localStorage.setItem('activeUser', JSON.stringify(activeUser));
             console.log('Inventario actualizado:', activeUser.inventory);
+
+             // Refresca y muestra el inventario en CharacterView
+             this.view.showInventory();
         }
     
         // Reiniciar estado de cultivo

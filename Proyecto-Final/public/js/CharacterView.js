@@ -4,7 +4,8 @@ export class CharacterView extends HTMLElement {
         this.drawingContext = drawingContext;
         this.characterModel = characterModel; 
         this.currentState = null;
-        this.dialogBox = this.createDialogBox(); 
+        this.dialogBox = this.createDialogBox();
+        this.inventoryBox = this.createInventoryBox(); 
         this.animals = [];
         this.npcs = [];
         
@@ -15,13 +16,16 @@ export class CharacterView extends HTMLElement {
         this.frameCounter = 0; // Contador para el control de la animación
         this.idleFrameRate = 10; // Velocidad para chica-idle (ajusta según necesites)
         this.defaultFrameRate = 5; // Velocidad por defecto para otros estados
+    
+        
+        this.showInventory();
     }
 
-    // Método para crear el cuadro de diálogo
+
     createDialogBox() {
         const dialogBox = document.createElement('div');
         dialogBox.style.position = 'absolute';
-        dialogBox.style.bottom = '20px'; // Ajusta según necesites
+        dialogBox.style.bottom = '20px'; 
         dialogBox.style.left = '50%';
         dialogBox.style.transform = 'translateX(-50%)';
         dialogBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
@@ -33,16 +37,56 @@ export class CharacterView extends HTMLElement {
         return dialogBox;
     }
 
-    // Método para mostrar el diálogo
     showDialog(message) {
-        this.dialogBox.innerText = message; // Establece el mensaje
-        this.dialogBox.style.display = 'block'; // Muestra el cuadro de diálogo
+        this.dialogBox.innerText = message; 
+        this.dialogBox.style.display = 'block'; 
 
         // Oculta el diálogo después de un tiempo
         setTimeout(() => {
             this.dialogBox.style.display = 'none';
         }, 3000); // Ajusta el tiempo según necesites
     }
+
+    
+
+   
+    createInventoryBox() {
+        const inventoryBox = document.createElement('div');
+        inventoryBox.style.position = 'absolute';
+        inventoryBox.style.top = '20px'; // Parte superior de la pantalla
+        inventoryBox.style.left = '50%';
+        inventoryBox.style.transform = 'translateX(-50%)';
+        inventoryBox.style.backgroundColor = '#6b4006'; // Marrón
+        inventoryBox.style.color = 'white';
+        inventoryBox.style.padding = '10px';
+        inventoryBox.style.borderRadius = '15px'; 
+        inventoryBox.style.border = '4px solid #f81aa6 '; 
+        inventoryBox.style.fontFamily = '"Pixelify Sans", sans-serif'; // Fuente personalizada
+        document.body.appendChild(inventoryBox); // Siempre visible, sin `display: none`
+        return inventoryBox;
+    }
+
+// Método para mostrar el cuadro de inventario con el contenido del localStorage
+showInventory() {
+    let activeUser = JSON.parse(localStorage.getItem('activeUser'));
+
+    if (activeUser && activeUser.inventory) {
+        const inventoryItems = Object.entries(activeUser.inventory)
+            .map(([crop, count]) => `${crop}: ${count}`)
+            .join(', ');
+        
+        this.inventoryBox.innerText = `INVENTARIO: ${inventoryItems}`;
+    } else {
+        this.inventoryBox.innerText = "Inventario vacío";
+        console.log("No hay usuario activo o el inventario está vacío.");
+    }
+}
+
+// Método para refrescar y mostrar el inventario al actualizarlo
+refreshInventory() {
+    this.showInventory(); // Llama a showInventory para mostrar el inventario actualizado
+}
+
 
     set state(newState) {
         this.currentState = newState;
@@ -176,6 +220,15 @@ export class CharacterView extends HTMLElement {
         });
     }
 }
+// Función para cargar Google Fonts desde JavaScript
+function loadGoogleFont() {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap';
+    document.head.appendChild(link);
+}
 
+// Llamamos a la función para cargar la fuente
+loadGoogleFont();
 // Registra el componente 'character-view' para el DOM
 customElements.define('character-view', CharacterView);
