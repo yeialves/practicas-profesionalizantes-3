@@ -4,7 +4,7 @@ export class CharacterController {
     constructor(model, view) {
         this.model = model;
         this.view = view;
-        this.cropManager = new CropManager(view, model); // Vincula CropManager
+        this.cropManager = new CropManager(view, model); 
         this.model.addEventListener('positionchanged', () => this.updateView()); 
         this.model.addEventListener('mapchanged', (event) => this.handleMapChange(event)); 
 
@@ -14,15 +14,14 @@ export class CharacterController {
             s: false,
             d: false, 
         };
-       
-    }
 
+    }
     connect() {
         document.addEventListener('keydown', (event) => this.handleKeyDown(event)); 
         document.addEventListener('keyup', (event) => this.handleKeyUp(event)); 
         document.getElementById('logoutButton').addEventListener('click', () => this.handleLogout()); 
         this.animate(); 
-        this.cropManager.startCropGrowth(); // Inicia el crecimiento de cultivos
+        this.cropManager.startCropGrowth(); 
     }
 
     handleKeyDown(event) {
@@ -31,8 +30,7 @@ export class CharacterController {
         if (event.key === 's') this.keys.s = true;
         if (event.key === 'd') this.keys.d = true;
         this.updateDirection();
-        
-        // Llama a la recolección de cultivos cuando se está cerca
+
         if (this.cropManager.checkProximity() && this.cropManager.cropStage === 'full') {
             this.cropManager.collectCrops();
         }
@@ -68,16 +66,22 @@ export class CharacterController {
     }
 
     handleLogout() {
+        const activeUser = JSON.parse(localStorage.getItem('activeUser')); 
+        
         fetch('/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ action: 'logout' })
+            body: JSON.stringify({
+                action: 'logout',
+                user: activeUser 
+            })
         })
         .then(response => {
             if (response.ok) {
-                window.location.href = '/img/login.html'; // Redirigir a login
+                localStorage.removeItem('activeUser'); 
+                window.location.href = '/img/login.html'; 
             } else {
                 document.getElementById('logout-message').textContent = 'Error al cerrar sesión.';
             }
@@ -86,5 +90,6 @@ export class CharacterController {
             console.error('Error:', error);
             document.getElementById('logout-message').textContent = 'Error al cerrar sesión.';
         });
-    }
+    }    
+        
 }

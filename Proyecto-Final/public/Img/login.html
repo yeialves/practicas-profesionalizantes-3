@@ -20,42 +20,33 @@
         <p id="login-message"></p>
         <p>¿No tienes cuenta? <a href="img/register.html">Regístrate aquí</a></p>
     </div>
-
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Evitar el comportamiento por defecto del formulario
-    
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-    
-            fetch('/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ action: 'login', username, password })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Si la respuesta no es 2xx, lanzar un error
-                    return response.json().then(err => { throw new Error(err.message); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.redirect) {
-                    // Redirigir a index.html si el inicio de sesión fue exitoso
-                    window.location.href = data.redirect;
-                } else {
-                    // Mostrar mensaje de error
-                    document.getElementById('login-message').textContent = data.message;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('login-message').textContent = error.message; // Mostrar mensaje de error en el elemento p
-            });
-        });
+         event.preventDefault();
+ 
+         const username = document.getElementById('username').value;
+         const password = document.getElementById('password').value;
+ 
+         fetch('/', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ action: 'login', username, password })
+         })
+         .then(response => response.json())
+         .then(data => {
+             if (data.redirect) {
+                 // Guardar datos del usuario en el localStorage
+                 localStorage.setItem('activeUser', JSON.stringify(data.user));
+                 window.location.href = data.redirect;
+             } else {
+                 document.getElementById('login-message').textContent = data.message;
+             }
+         })
+         .catch(error => {
+             console.error('Error:', error);
+             document.getElementById('login-message').textContent = error.message;
+         });
+     });
     </script>
 </body>
 </html>

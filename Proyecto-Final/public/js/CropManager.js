@@ -55,10 +55,10 @@ export class CropManager {
     
         // Generar un número total aleatorio entre 12 y 24
         const totalCrops = Math.floor(Math.random() * 13) + 12; 
-        const crops = ['carrot', 'choclo', 'trigo'];
-        const counts = { 'carrot': 0, 'choclo': 0, 'trigo': 0 };
+        const crops = ['zanahoria', 'choclo', 'trigo'];
+        const counts = { 'zanahoria': 0, 'choclo': 0, 'trigo': 0 };
     
-        counts['carrot'] = 4;
+        counts['zanahoria'] = 4;
         counts['choclo'] = 4;
         counts['trigo'] = 4;
     
@@ -75,7 +75,7 @@ export class CropManager {
         for (let crop of crops) {
             counts[crop] = Math.min(counts[crop], 8);
         }
-
+    
         // Crear marcador de recolección para cada tipo con un índice único
         let index = 0;
         for (let [crop, count] of Object.entries(counts)) {
@@ -85,26 +85,40 @@ export class CropManager {
             }
         }
     
+        // Guardar los cultivos recolectados en el inventario del usuario activo
+        let activeUser = JSON.parse(localStorage.getItem('activeUser'));
+        if (activeUser && activeUser.inventory) {
+            // Si el cultivo ya existe en el inventario, se suma la cantidad
+            for (let crop in counts) {
+                if (activeUser.inventory[crop]) {
+                    activeUser.inventory[crop] += counts[crop];
+                } else {
+                    activeUser.inventory[crop] = counts[crop];
+                }
+            }
+            localStorage.setItem('activeUser', JSON.stringify(activeUser));
+            console.log('Inventario actualizado:', activeUser.inventory);
+        }
+    
         // Reiniciar estado de cultivo
         this.cropStage = 'initial';
         this.cropGrowthTimer = 0;
         this.updateCultivoImages();
         this.startCropGrowth();
     }
+    
 
     showCollectionMarker(cropType, count, index) {
         const marker = document.createElement('div');
         marker.style.position = 'absolute';
     
-        // Obtener el canvas y su posición en la ventana
         const canvas = document.querySelector('canvas');
         const canvasRect = canvas.getBoundingClientRect();
     
-        // Calcular el centro del canvas en la ventana
         const canvasCenterX = canvasRect.left + canvasRect.width / 2;
         const canvasCenterY = canvasRect.top + canvasRect.height / 2;
     
-        const offsetX = 80; // Separación horizontal entre marcadores
+        const offsetX = 80; 
     
         // Ajuste adicional para que estén más a la izquierda y más abajo
         const leftAdjustment = -100; 

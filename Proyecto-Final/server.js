@@ -7,15 +7,11 @@ const dataFilePath = path.join(__dirname, 'data.json');
 
 // Verificar si el archivo data.json existe
 if (!fs.existsSync(dataFilePath)) {
-    // Si no existe, crear el archivo con una estructura inicial
-    const initialData = {
-        users: []
-    };
+    const initialData = { users: [] };
     fs.writeFileSync(dataFilePath, JSON.stringify(initialData, null, 2));
     console.log('data.json creado con estructura inicial.');
 }
 
-// Cargar los datos de la base de datos simulada
 let data = JSON.parse(fs.readFileSync(dataFilePath, 'utf-8'));
 
 const server = http.createServer((req, res) => {
@@ -24,15 +20,15 @@ const server = http.createServer((req, res) => {
         let body = '';
 
         req.on('data', chunk => {
-            body += chunk.toString(); 
+            body += chunk.toString();
         });
 
         req.on('end', () => {
             try {
                 const { action, username, password } = JSON.parse(body);
+                console.log(action, username, password);
 
                 if (action === 'register') {
-                    // Verificar si el usuario ya existe
                     const userExists = data.users.some(user => user.username === username);
                     if (userExists) {
                         res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -40,40 +36,51 @@ const server = http.createServer((req, res) => {
                         return;
                     }
 
-                    // Crear un nuevo usuario con inventario vacío y nivel 1
-                    const newUser = {
-                        username,
-                        password,
-                        level: 1,
-                        inventory: []  // Inventario vacío
-                    };
-
-                    // Agregar el nuevo usuario a la lista
+                    const newUser = { username, password, level: 1, inventory: [] };
                     data.users.push(newUser);
-
-                    // Guardar los datos actualizados en el archivo data.json
-                    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2)); // Almacena los datos en data.json
-                    console.log('Nuevo usuario registrado:', username); // Log de registro
-
+                    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+                    console.log('Nuevo usuario registrado:', username);
                     res.writeHead(201, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ message: 'Registro exitoso.' }));
 
                 } else if (action === 'login') {
                     const user = data.users.find(user => user.username === username && user.password === password);
                     if (user) {
-                        activeUser = user; 
-                        console.log('Inicio de sesión exitoso para:', username); // Log de inicio de sesión exitoso
+                        console.log('Inicio de sesión exitoso para:', username);
                         res.writeHead(200, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ message: 'Inicio de sesión exitoso.', redirect: 'img/index.html' })); // Redirigir a index.html
+                        res.end(JSON.stringify({ 
+                            message: 'Inicio de sesión exitoso.', 
+                            redirect: '/img/index.html', 
+                            user: user 
+                        }));
                     } else {
-                        console.log('Inicio de sesión fallido para:', username); // Log de inicio de sesión fallido
+                        console.log('Inicio de sesión fallido para:', username);
                         res.writeHead(401, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify({ message: 'Nombre de usuario o contraseña incorrectos.' }));
                     }
-                } else {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ message: 'Acción no válida.' }));
-                }
+                } else if (action === 'logout') {
+                    const parsedBody = JSON.parse(body);
+                    const user = parsedBody.user;
+                
+                    if (user) {
+                        // Encuentra el índice del usuario en el array de usuarios
+                        const userIndex = data.users.findIndex(u => u.username === user.username);
+                        if (userIndex !== -1) {
+                            // Sobrescribe los datos del usuario en el archivo JSON con los datos actuales del localStorage
+                            data.users[userIndex] = { ...data.users[userIndex], ...user }; 
+                            fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2)); // Guarda los cambios en data.json
+                            console.log('Datos de usuario actualizados en data.json');
+                        }
+                    } else {
+                        console.log('Error: No se recibió el usuario al cerrar sesión.');
+                    }
+                
+                    // Limpia el localStorage después de que los datos se hayan guardado
+                    console.log('Cierre de sesión exitoso.');
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ message: 'Cierre de sesión exitoso.', redirect: '/img/login.html' }));
+                }                
+
             } catch (error) {
                 console.error('Error al procesar la solicitud:', error);
                 res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -81,18 +88,15 @@ const server = http.createServer((req, res) => {
             }
         });
     } else {
-        // Manejar solicitudes GET para servir archivos estáticos
         let filePath = path.join(__dirname, 'public', req.url);
-
-        // Si la URL está vacía, servir el login.html
         if (req.url === '/') {
-            filePath = path.join(__dirname, 'public', 'img/login.html');
-        }
+            filePath = path.join(__dirname, 'public', req.url === '/' ? 'img/login.html' : req.url);
 
-        // Determinar la extensión del archivo y su tipo de contenido
+        }
+    
         const extname = path.extname(filePath);
         let contentType = 'text/html';
-
+    
         switch (extname) {
             case '.js':
                 contentType = 'text/javascript';
@@ -116,22 +120,29 @@ const server = http.createServer((req, res) => {
                 contentType = 'text/html';
                 break;
         }
-
-        // Leer el archivo desde la ruta calculada
-        fs.readFile(filePath, (error, content) => {
-            if (error) {
-                console.error('Error al leer el archivo:', error);
-                res.writeHead(500);
-                res.end(`Error interno del servidor: ${error.message}`);
+    
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+                console.error('Archivo no encontrado:', filePath);
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end('404 - Archivo no encontrado');
                 return;
             }
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content, 'utf-8');
+            fs.readFile(filePath, (error, content) => {
+                if (error) {
+                    console.error('Error al leer el archivo:', error);
+                    res.writeHead(500);
+                    res.end(`Error interno del servidor: ${error.message}`);
+                    return;
+                }
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(content, 'utf-8');
+            });
         });
+        
     }
 });
 
-// Iniciar el servidor
 const PORT = 3000;
 server.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
