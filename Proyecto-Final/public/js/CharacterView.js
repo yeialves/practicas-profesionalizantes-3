@@ -2,9 +2,8 @@ export class CharacterView extends HTMLElement {
     constructor(drawingContext, characterModel) {
         super();
         this.drawingContext = drawingContext;
-        this.characterModel = characterModel; 
+        this.characterModel = characterModel;
         this.currentState = null;
-        this.dialogBox = this.createDialogBox();
         this.inventoryBox = this.createInventoryBox(); 
         this.animals = [];
         this.npcs = [];
@@ -13,80 +12,92 @@ export class CharacterView extends HTMLElement {
         this.cameraHeight = 480;
         this.loadedImages = {};
 
-        this.frameCounter = 0; // Contador para el control de la animación
-        this.idleFrameRate = 10; // Velocidad para chica-idle (ajusta según necesites)
-        this.defaultFrameRate = 5; // Velocidad por defecto para otros estados
+        this.frameCounter = 0; 
+        this.idleFrameRate = 10; 
+        this.defaultFrameRate = 5;
     
         
         this.showInventory();
     }
 
-
-    createDialogBox() {
-        const dialogBox = document.createElement('div');
-        dialogBox.style.position = 'absolute';
-        dialogBox.style.bottom = '20px'; 
-        dialogBox.style.left = '50%';
-        dialogBox.style.transform = 'translateX(-50%)';
-        dialogBox.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        dialogBox.style.color = 'white';
-        dialogBox.style.padding = '10px';
-        dialogBox.style.borderRadius = '5px';
-        dialogBox.style.display = 'none'; // Oculto por defecto
-        document.body.appendChild(dialogBox);
-        return dialogBox;
-    }
-
-    showDialog(message) {
-        this.dialogBox.innerText = message; 
-        this.dialogBox.style.display = 'block'; 
-
-        // Oculta el diálogo después de un tiempo
-        setTimeout(() => {
-            this.dialogBox.style.display = 'none';
-        }, 3000); // Ajusta el tiempo según necesites
-    }
-
-    
-
-   
     createInventoryBox() {
         const inventoryBox = document.createElement('div');
         inventoryBox.style.position = 'absolute';
-        inventoryBox.style.top = '20px'; // Parte superior de la pantalla
-        inventoryBox.style.left = '50%';
+        inventoryBox.style.top = '140px'; 
+        inventoryBox.style.left = '51%';
         inventoryBox.style.transform = 'translateX(-50%)';
-        inventoryBox.style.backgroundColor = '#6b4006'; // Marrón
+        inventoryBox.style.backgroundColor = '#6b4006';
         inventoryBox.style.color = 'white';
         inventoryBox.style.padding = '10px';
         inventoryBox.style.borderRadius = '15px'; 
         inventoryBox.style.border = '4px solid #f81aa6 '; 
-        inventoryBox.style.fontFamily = '"Pixelify Sans", sans-serif'; // Fuente personalizada
-        document.body.appendChild(inventoryBox); // Siempre visible, sin `display: none`
+        inventoryBox.style.fontFamily = '"Pixelify Sans", sans-serif'; 
+        document.body.appendChild(inventoryBox); 
         return inventoryBox;
     }
 
-// Método para mostrar el cuadro de inventario con el contenido del localStorage
-showInventory() {
-    let activeUser = JSON.parse(localStorage.getItem('activeUser'));
-
-    if (activeUser && activeUser.inventory) {
-        const inventoryItems = Object.entries(activeUser.inventory)
-            .map(([crop, count]) => `${crop}: ${count}`)
-            .join(', ');
+    showInventory() {
+        let activeUser = JSON.parse(localStorage.getItem('activeUser'));
+    
+        if (!activeUser) {
+            this.inventoryBox.textContent = "No hay usuario activo.";
+            return;
+        }
+    
         
-        this.inventoryBox.innerText = `INVENTARIO: ${inventoryItems}`;
-    } else {
-        this.inventoryBox.innerText = "Inventario vacío";
-        console.log("No hay usuario activo o el inventario está vacío.");
+        if (!activeUser.inventory) {
+            activeUser.inventory = {}; 
+            localStorage.setItem('activeUser', JSON.stringify(activeUser)); 
+        }
+    
+     
+        this.inventoryBox.textContent = "INVENTARIO: ";
+    
+        const crops = ['zanahoria', 'choclo', 'trigo'];
+    
+        // Crear un contenedor principal para los cultivos 
+        const cropsContainer = document.createElement('div');
+        cropsContainer.style.display = 'flex';
+        cropsContainer.style.flexDirection = 'row'; 
+        cropsContainer.style.flexWrap = 'wrap'; 
+    
+        crops.forEach(crop => {
+            const count = activeUser.inventory[crop] || 0;
+            if (count > 0) {
+                const cropContainer = document.createElement('div');
+                cropContainer.style.display = 'flex';
+                cropContainer.style.alignItems = 'center';
+                cropContainer.style.marginRight = '20px'; 
+                
+                // Crear la imagen del cultivo
+                const cropImage = document.createElement('img');
+                cropImage.src = `/assets/${crop}.png`;  
+                cropImage.style.width = '25px'; 
+                cropImage.style.height = '25px'; 
+                cropImage.style.marginRight = '5px'; 
+                
+                const text = document.createElement('span');
+                text.textContent = `${crop}: ${count}`;
+                
+                cropContainer.appendChild(cropImage);
+                cropContainer.appendChild(text);
+                
+                cropsContainer.appendChild(cropContainer);
+            }
+        });
+    
+        if (cropsContainer.children.length === 0) {
+            const emptyText = document.createElement('span');
+            emptyText.textContent = "Inventario vacío.";
+            this.inventoryBox.appendChild(emptyText);
+        } else {
+            this.inventoryBox.appendChild(cropsContainer);  
+        }
     }
-}
-
-// Método para refrescar y mostrar el inventario al actualizarlo
-refreshInventory() {
-    this.showInventory(); // Llama a showInventory para mostrar el inventario actualizado
-}
-
+ 
+    refreshInventory() {
+        this.showInventory();
+    }
 
     set state(newState) {
         this.currentState = newState;
@@ -102,42 +113,46 @@ refreshInventory() {
     this.shouldDrawAnimalsAndNpcs = (mapData.fileName === '/maps/mapa.tmj');
     }
 
-
     update() {
-        this.drawingContext.clearRect(0, 0, this.drawingContext.canvas.width, this.drawingContext.canvas.height);
-    
-        if (this.mapData) {
-            this.drawMap(this.mapData, this.drawingContext, 64);
-        }
-    
-        // Dibuja el personaje principal
-        if (this.state) {
-            this.drawCharacter(this.state);
-        }
-    
-        // Verifica si el mapa actual es 'mapa.tmj' antes de dibujar animales y NPCs
-        if (this.mapData && this.mapData.fileName === '/maps/mapa.tmj') {
-            // Dibuja animales
-            this.animals.forEach(animal => {
-                if (animal && animal.state) {
-                    this.drawCharacter(animal.state);
-                }
-            });
-    
-            // Dibuja NPCs siempre
-            this.npcs.forEach(npc => {
-                npc.updateIdleState(); // Asegúrate de que el NPC actualice su estado
-                this.drawCharacter(npc.state); // Dibuja el NPC aquí
-    
-                // Verifica la proximidad y muestra el diálogo
-                if (npc.checkProximity(this.characterModel)) {
-                    this.showDialog(`${npc.NpcType} : Holis Felix.`);
-                }
-            });
-        }
-    }    
-    
+    this.drawingContext.clearRect(0, 0, this.drawingContext.canvas.width, this.drawingContext.canvas.height);
 
+    if (this.mapData) {
+        this.drawMap(this.mapData, this.drawingContext, 64);
+    }
+
+    // Dibuja el personaje principal
+    if (this.state) {
+        this.drawCharacter(this.state);
+    }
+
+    // Verifica si el mapa actual es 'mapa.tmj' antes de dibujar animales y NPCs
+    if (this.mapData && this.mapData.fileName === 'mapa.tmj') {
+        // Dibuja animales solo si son visibles
+        this.animals.forEach(animal => {
+            if (animal && animal.state && animal.state.isVisible) {
+                this.drawCharacter(animal.state);
+            }
+        });
+
+        // Dibuja NPCs siempre
+        this.npcs.forEach(npc => {
+            npc.updateIdleState(); 
+            this.drawCharacter(npc.state); 
+
+            if (npc.checkProximity(this.characterModel)) {
+                // Dispara un evento personalizado de proximidad a NPC
+                const event = new CustomEvent('npcProximity', {
+                    detail: {
+                        npc: npc
+                    }
+                });
+                this.dispatchEvent(event); 
+            }
+        });
+    }
+}  
+
+    
     drawCharacter(state) {
         let img = this.loadedImages[state.sprite];
         if (!img) {
@@ -177,7 +192,7 @@ refreshInventory() {
         this.animals.push(animalModel);
     }
 
-    addNpc(NpcModel) { // Añade NPC a la lista
+    addNpc(NpcModel) { 
         this.npcs.push(NpcModel);
     }
 
@@ -219,6 +234,16 @@ refreshInventory() {
             }
         });
     }
+
+    setUnicornVisible() {
+        const unicornio = this.animals.find(animal => animal.animalType === 'unicornio');
+        if (unicornio) {
+            unicornio.setVisible(); 
+            this.update();
+        }
+    }
+    
+    
 }
 // Función para cargar Google Fonts desde JavaScript
 function loadGoogleFont() {
@@ -228,7 +253,7 @@ function loadGoogleFont() {
     document.head.appendChild(link);
 }
 
-// Llamamos a la función para cargar la fuente
 loadGoogleFont();
 // Registra el componente 'character-view' para el DOM
 customElements.define('character-view', CharacterView);
+

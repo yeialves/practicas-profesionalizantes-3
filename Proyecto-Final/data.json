@@ -1,33 +1,13 @@
 {
   "users": [
     {
-      "username": "Yesi",
-      "password": "1234",
-      "level": 1,
-      "inventory": {
-        "zanahoria": 18,
-        "choclo": 17,
-        "trigo": 19
-      }
-    },
-    {
-      "username": "Yesica",
+      "username": "Katia",
       "password": "1234",
       "level": 1,
       "inventory": {}
     },
     {
-      "username": "Katia",
-      "password": "1234",
-      "level": 1,
-      "inventory": {
-        "zanahoria": 6,
-        "choclo": 8,
-        "trigo": 6
-      }
-    },
-    {
-      "username": "lolis",
+      "username": "Yesica",
       "password": "1234",
       "level": 1,
       "inventory": {}

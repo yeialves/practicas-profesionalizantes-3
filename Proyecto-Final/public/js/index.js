@@ -1,4 +1,3 @@
-// Importar las clases desde sus respectivos módulos
 import { CharacterView } from './CharacterView.js';
 import { CharacterModel } from './CharacterModel.js';
 import { CharacterController } from './CharacterController.js';
@@ -10,7 +9,7 @@ async function main() {
 
     if (!container) {
         console.error('El contenedor del juego no existe.');
-        return; // Detener la ejecución si el contenedor no está presente
+        return;
     }
 
     let canvas = document.createElement('canvas');
@@ -22,13 +21,13 @@ async function main() {
 
     let characterModel = new CharacterModel();
     let characterView = new CharacterView(context, characterModel); 
-    let characterController = new CharacterController(characterModel, characterView);
+    let characterController = new CharacterController(characterModel, characterView, characterModel.animalCollisionLayer);
 
+    characterController.addEventListener('missionCompleted', () => {
+        characterView.setUnicornVisible();
+    });    
 
-
-    let gallina;
-    let vaca;
-    let chica;
+    let gallina, vaca, conejo, unicornio, chica;
 
     try {
         const mapData = await characterModel.loadMap('/maps/mapa.tmj');
@@ -44,7 +43,9 @@ async function main() {
 
         vaca = new AnimalModel('vaca', characterModel.animalCollisionLayer);
         gallina = new AnimalModel('gallina', characterModel.animalCollisionLayer);
-        chica = new NPC('chica');
+        conejo = new AnimalModel ('conejo', characterModel.animalCollisionLayer);
+        unicornio = new AnimalModel ('unicornio', characterModel.animalCollisionLayer);
+        chica = new NPC('Katia');
 
         vaca.state.position_x = 128;
         vaca.state.position_y = 128;
@@ -54,9 +55,19 @@ async function main() {
         gallina.state.position_y = 128;
         characterView.addAnimal(gallina);
 
+        conejo.state.position_x = 128;
+        conejo.state.position_y = 128;
+        characterView.addAnimal(conejo);
+
+        unicornio.state.position_x = 245;
+        unicornio.state.position_y = 420;
+        unicornio.state.isVisible = false;
+        characterView.addAnimal(unicornio);
+
         chica.state.position_x = 332;
         chica.state.position_y = 288;
         characterView.addNpc(chica);
+
 
     } catch (error) {
         console.error('Error loading map:', error);
@@ -65,20 +76,21 @@ async function main() {
     function animateAnimals() {
         if (vaca) vaca.updatePosition(); 
         if (gallina) gallina.updatePosition(); 
+        if (conejo) conejo.updatePosition();
+        if (unicornio) unicornio.updatePosition();
         characterView.update(); 
         
         requestAnimationFrame(animateAnimals); 
     }    
-    animateAnimals(); // Inicia la animación de los animales 
+    animateAnimals();
 
     function animateNpcs() {
         characterView.update(); 
         requestAnimationFrame(animateNpcs); 
     }    
-    animateNpcs(); // Inicia la animación de los NPCs
+    animateNpcs(); 
 
-    characterController.connect();
+    characterController.connect(); 
 }
-
 // Ejecuta la función main cuando la ventana se carga
 window.onload = main; 

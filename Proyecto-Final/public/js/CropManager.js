@@ -1,8 +1,8 @@
 export class CropManager {
-    constructor(view, model, activeUser) { // Asegúrate de pasar el usuario activo al constructor
+    constructor(view, model, activeUser) { 
         this.view = view;
         this.model = model;
-        this.activeUser = activeUser; // Almacena el usuario activo
+        this.activeUser = activeUser;
         this.cropStage = 'initial';
         this.cropGrowthTimer = 0;
         this.growthInterval = null;
@@ -62,8 +62,8 @@ export class CropManager {
         counts['choclo'] = 4;
         counts['trigo'] = 4;
     
-        // Calcular los cultivos restantes a repartir
-        const remainingCrops = totalCrops - 12; // Restar los 12 ya contados (4 de cada tipo)
+        // Restar los 12 ya contados (4 de cada tipo)
+        const remainingCrops = totalCrops - 12; 
     
         // Repartir los cultivos restantes de manera aleatoria entre los tres tipos
         for (let i = 0; i < remainingCrops; i++) {
@@ -81,7 +81,7 @@ export class CropManager {
         for (let [crop, count] of Object.entries(counts)) {
             if (count > 0) {
                 this.showCollectionMarker(crop, count, index);
-                index++;  // Incrementar el índice para la siguiente posición
+                index++;  
             }
         }
     
@@ -99,8 +99,7 @@ export class CropManager {
             localStorage.setItem('activeUser', JSON.stringify(activeUser));
             console.log('Inventario actualizado:', activeUser.inventory);
 
-             // Refresca y muestra el inventario en CharacterView
-             this.view.showInventory();
+             this.view.showInventory(); 
         }
     
         // Reiniciar estado de cultivo
@@ -123,11 +122,9 @@ export class CropManager {
     
         const offsetX = 80; 
     
-        // Ajuste adicional para que estén más a la izquierda y más abajo
         const leftAdjustment = -100; 
         const topAdjustment = 130; 
     
-        // Posicionar los marcadores en el centro del canvas con ajustes
         marker.style.left = `${canvasCenterX + (index * offsetX) + leftAdjustment}px`;
         marker.style.top = `${canvasCenterY + topAdjustment}px`;
     
@@ -146,7 +143,6 @@ export class CropManager {
         cropImage.style.height = '20px';
         cropImage.style.marginRight = '5px';
     
-        // Texto de cantidad recolectada
         const text = document.createElement('span');
         text.textContent = `+${count}`;
     

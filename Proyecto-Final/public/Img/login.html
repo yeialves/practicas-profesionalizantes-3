@@ -7,18 +7,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/login.css"> <!-- Enlace al archivo CSS -->
+    <link rel="stylesheet" href="/css/login.css">
 </head>
 <body>
     <div class="form-container">
         <h1 class="login-form-font">LOGIN</h1>
-        <form id="loginForm"> <!-- Asegúrate de que hay un elemento form aquí -->
+        <form id="loginForm"> 
             <input type="text" id="username" class="custom-font" placeholder="USERNAME" required>
             <input type="password" id="password" class="custom-font" placeholder="PASSWORD" required>
             <button class="login-form-font" type="submit">Login</button>
         </form>
         <p id="login-message"></p>
-        <p>¿No tienes cuenta? <a href="img/register.html">Regístrate aquí</a></p>
+        <p>¿No tienes cuenta? <a href="/img/register.html">Regístrate aquí</a></p>
     </div>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {

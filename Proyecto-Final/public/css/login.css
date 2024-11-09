@@ -1,69 +1,69 @@
 * {
-    box-sizing: border-box; /* Incluye padding y border en el tamaño total */
+    box-sizing: border-box;
 }
 
 body {
-    background-image: url('fondo.jpg'); /* Ruta de la imagen de fondo */
-    background-size: cover; /* Ajusta la imagen al tamaño de la ventana */
-    background-position: center; /* Centra la imagen */
-    background-repeat: no-repeat; /* Evita que la imagen se repita */
-    color: white; /* Cambia el color del texto si es necesario */
-    font-family: Arial, sans-serif; /* Fuente para el texto */
-    height: 100vh; /* Altura del body igual a la altura de la ventana */
-    margin: 0; /* Elimina el margen predeterminado del body */
-    overflow: hidden; /* Evita el desplazamiento */
-    display: flex; /* Usa flexbox para centrar el contenido */
-    justify-content: center; /* Centra horizontalmente */
-    align-items: center; /* Centra verticalmente */
+    background-image: url('fondo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .form-container {
-    background: rgba(63, 110, 68, 0.7); 
-    padding: 30px; 
-    border-radius: 30px; 
-    max-width: 500px; 
-    width: 100%; 
-    font-family: "Pixelify Sans", sans-serif; /* Aplica la fuente aquí */
+    background: rgba(63, 110, 68, 0.7);
+    padding: 30px;
+    border-radius: 30px;
+    max-width: 500px;
+    width: 100%;
+    font-family: "Pixelify Sans", sans-serif;
 }
 
 .login-form-font {
-    font-family: "Pixelify Sans", sans-serif; 
-    font-weight: 400; /* Peso de la fuente, puede cambiarse entre 400 y 700 */
+    font-family: "Pixelify Sans", sans-serif;
+    font-weight: 400;
     font-size: 25px;
 }
 
 label, button {
-    display: block; 
+    display: block;
     margin-bottom: 15px;
-    font-size: 1.2em; 
+    font-size: 1.2em;
 }
 
 .custom-font {
-    font-family: "Pixelify Sans", sans-serif; /* Reemplaza con la fuente que prefieras */
-    font-weight: 400; /* Ajusta el peso según tus necesidades */
+    font-family: "Pixelify Sans", sans-serif;
+    font-weight: 400;
     font-style: normal;
 }
 
 input {
     width: 100%;
-    padding: 10px; 
-    border-radius: 30px; 
-    border: 1px solid #ccc; 
-    font-size: 1em; 
-    margin-bottom: 15px; /* Espaciado entre los inputs */
+    padding: 10px;
+    border-radius: 30px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    margin-bottom: 15px;
 }
 
 button {
-    display: block; 
-    margin: 15px auto 0; 
-    padding: 10px 15px; 
-    border-radius: 30px; 
-    background-color: #cd529c; 
-    color: white; 
-    border: none; 
-    cursor: pointer; 
+    display: block;
+    margin: 15px auto 0;
+    padding: 10px 15px;
+    border-radius: 30px;
+    background-color: #cd529c;
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
 button:hover {
-    background-color: #940065; 
+    background-color: #940065;
 }

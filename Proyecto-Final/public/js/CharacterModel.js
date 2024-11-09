@@ -8,13 +8,13 @@ export class CharacterModel extends EventTarget {
             position_y: 300,
             frame: 0,
             speed: 3,
-            isIdle: false // Nuevo estado para determinar si está en idle
+            isIdle: false 
         };
         this.direction = { x: 0, y: 0 };
-        this.lastDirection = { x: 0, y: 1 }; // Última dirección (por defecto, mirando al frente)
+        this.lastDirection = { x: 0, y: 1 }; 
         this.collisionLayer = null;
         this.tileSize = 64;
-        this.frameCounter = 0; // Contador para los frames
+        this.frameCounter = 0; 
 
         this.animals = [];
         this.npcs = [];
@@ -27,7 +27,6 @@ export class CharacterModel extends EventTarget {
             this.state.isIdle = false; 
             this.moveCharacter(); 
 
-            // Verifica si el personaje llega al borde del mapa
             this.checkForMapChange(); 
         } else {
             this.handleIdleState();
@@ -35,7 +34,7 @@ export class CharacterModel extends EventTarget {
 
         this.updateSprite(); 
         this.updateFrame(); 
-        // Notifica el cambio de posición
+
         this.dispatchEvent(new CustomEvent('positionchanged')); 
     }
     
@@ -50,19 +49,17 @@ export class CharacterModel extends EventTarget {
         const isOnTopEdge = this.state.position_y <= 1; 
         const isOnBottomEdge = this.state.position_y + this.state.height >= mapHeightPixels; 
     
-        // Verifica si está en la capa de "camino"
         const isOnCaminoLayer = this.isOnCaminoLayer(this.state.position_x, this.state.position_y);
     
-        // Verificar cambio de mapa en el borde derecho
         if (isOnRightEdge && isOnCaminoLayer) {
             this.loadNewMap('/maps/prueba.tmj', 0, 300);
-        // Verificar cambio de mapa en el borde izquierdo
+     
         } else if (isOnLeftEdge && isOnCaminoLayer) {
             this.loadNewMap('/maps/mapa.tmj', 1740, 300);
-        // Verificar cambio de mapa en el borde superior
+     
         } else if (isOnTopEdge && isOnCaminoLayer) {
             this.loadNewMap('/maps/prueba.tmj', 800, 830);
-        // Verificar cambio de mapa en el borde inferior
+    
         } else if (isOnBottomEdge && isOnCaminoLayer) {
             this.loadNewMap('/maps/forest.tmj', 740, 1);
         }
@@ -87,7 +84,7 @@ export class CharacterModel extends EventTarget {
             !this.isCollision(alignedX, alignedY)) {
             this.state.position_x = newX;
             this.state.position_y = newY;
-            this.lastDirection = { ...this.direction }; // Guarda la última dirección de movimiento
+            this.lastDirection = { ...this.direction }; 
         }
     }
     
@@ -128,7 +125,7 @@ export class CharacterModel extends EventTarget {
         }
     }
 
-    // Verifica si hay colisión en la nueva posición
+    // Verifica si hay colisian en la nueva posición
     isCollision(newX, newY) {
         if (!this.collisionLayer) return false; 
 
@@ -138,15 +135,14 @@ export class CharacterModel extends EventTarget {
         const bottomLeft = this.isTileBlocked(newX, newY + this.state.height - 1);
         const bottomRight = this.isTileBlocked(newX + this.state.width - 1, newY + this.state.height - 1);
 
-        return topLeft || topRight || bottomLeft || bottomRight; // Colisión si alguna esquina choca
+        return topLeft || topRight || bottomLeft || bottomRight; // Colision si alguna esquina choca
     }
       
-    
-    // Verifica si un tile está bloqueado (tiene colisión)
+    // Verifica si un tile esta bloqueado 
     isTileBlocked(x, y) {
-        const tileX = Math.floor(x / this.tileSize); // Calcula el índice del tile en x
-        const tileY = Math.floor(y / this.tileSize); // Calcula el índice del tile en y
-        const tileIndex = tileY * this.collisionLayer.width + tileX; // Calcula el índice en el array de tiles
+        const tileX = Math.floor(x / this.tileSize); 
+        const tileY = Math.floor(y / this.tileSize); 
+        const tileIndex = tileY * this.collisionLayer.width + tileX; 
 
         return this.collisionLayer.data[tileIndex] > 0; // Retorna si el tile es bloqueado
     }
@@ -157,8 +153,8 @@ export class CharacterModel extends EventTarget {
         this.direction.y = y;
     }
 
- isOnCaminoLayer(x, y) {
-        // Verifica si el mapa y las capas están cargados correctamente
+    isOnCaminoLayer(x, y) {
+        
         if (!this.mapData || !this.mapData.layers) {
             console.error('El mapa o las capas no están cargados correctamente');
             return false;
@@ -175,10 +171,10 @@ export class CharacterModel extends EventTarget {
             const tileY = Math.floor((y + this.tileSize / 2) / this.tileSize);
 
 
-            const tileIndex = tileY * caminoLayer.width + tileX; // Cambiado a caminoLayer
+            const tileIndex = tileY * caminoLayer.width + tileX; 
     
         // Verifica si el tile en esa posición pertenece a la capa "camino"
-        return caminoLayer.data[tileIndex] > 0; // Retorna si el tile es bloqueado
+        return caminoLayer.data[tileIndex] > 0; 
     }
 
     async loadMap(url) {
@@ -188,19 +184,16 @@ export class CharacterModel extends EventTarget {
             throw new Error('Failed to load map: ' + response.statusText);
         }
         const mapData = await response.json();
-    
-        // Asignar el nombre del mapa
-        mapData.fileName = url.split('/').pop(); // Esto extrae el nombre del archivo del URL
+
+        mapData.fileName = url.split('/').pop(); 
     
         this.mapData = mapData;
-    
-        // Carga la capa de colisiones para personajes
+ 
         this.collisionLayer = mapData.layers.find(layer => layer.name === 'collision');
         if (!this.collisionLayer) {
             console.error('Collision layer not found');
         }
-    
-        // Carga la capa de colisiones para animales
+   
         this.animalCollisionLayer = mapData.layers.find(layer => layer.name === 'animalCollision');
         if (!this.animalCollisionLayer) {
             console.error('Animal collision layer not found');
@@ -216,7 +209,6 @@ export class CharacterModel extends EventTarget {
             this.state.position_x = newX;
             this.state.position_y = newY;
     
-            // Notificar el cambio de mapa
             this.dispatchEvent(new CustomEvent('mapchanged', { detail: { mapData } }));
         } catch (error) {
             console.error('Error al cargar el nuevo mapa:', error);
@@ -232,6 +224,8 @@ export class AnimalModel extends CharacterModel {
         this.animalSizes = { 
             'gallina': { width: 32, height: 32 },
             'vaca': { width: 64, height: 64 },
+            'conejo': { width: 32, height: 32 },
+            'unicornio': { width: 64, height: 64 },
         };
 
         if (!this.animalSizes[animalType]) {
@@ -246,6 +240,7 @@ export class AnimalModel extends CharacterModel {
             position_y: initialY,
             frame: 0,
             speed: 1,
+            isVisible: animalType !== 'unicornio',  
         };
 
         this.animalType = animalType;
@@ -257,18 +252,11 @@ export class AnimalModel extends CharacterModel {
         this.setRandomDirection();
         this.directionChangeCounter = 0;
 
-       
-        // Estado idle
         this.isIdle = false;
         this.idleTime = 0;
         this.idleThreshold = 200;
         this.idleWaitTime = 50;
         this.idleWaitCounter = 0;
-    }
-
-    // Modifica el temporizador para que sea aleatorio entre 3 y 7 segundos
-    getRandomEggDropTime() {
-        return Math.floor(Math.random() * (400 - 200 + 1)) + 200; // Entre 200 y 400 actualizaciones
     }
 
     updatePosition() {
@@ -277,6 +265,8 @@ export class AnimalModel extends CharacterModel {
             return;
         }
 
+        if (!this.state.isVisible) return; 
+        
         this.directionChangeCounter++;
         
         if (this.isIdle) {
@@ -305,7 +295,9 @@ export class AnimalModel extends CharacterModel {
 
     }
 
-
+    setVisible() {
+        this.state.isVisible = true;
+    }
 
     setRandomDirection() {
         const directions = [
@@ -362,25 +354,40 @@ export class AnimalModel extends CharacterModel {
         }
     }
 
-    getAnimalSprites(animalType) {
-        const spriteMap = {
-            'vaca': {
-                walkRight: '../assets/vaquita-spread-dere.png',
-                walkLeft: '../assets/vaquita-spread-iz.png',
-                walkFront: '../assets/vaquita-spread.png',
-                walkBack: '../assets/vaquita-paatras-Sheet.png',
-                idle: '../assets/vaquita-comi-Sheet.png' 
-            },
-            'gallina': {
-                walkRight: '../assets/gallina-dere.png',
-                walkLeft: '../assets/gallina-izq.png',
-                walkFront: '../assets/gallina-front.png',
-                walkBack: '../assets/gallina-atras.png',
-                idle: '../assets/galli-comiendo.png'
-            },
-        };
-        return spriteMap[animalType] || spriteMap['gallina'];
-    }
+   getAnimalSprites(animalType) {
+    const spriteMap = {
+        'vaca': {
+            walkRight: '/assets/vaquita-spread-dere.png',
+            walkLeft: '/assets/vaquita-spread-iz.png',
+            walkFront: '/assets/vaquita-spread.png',
+            walkBack: '/assets/vaquita-paatras-Sheet.png',
+            idle: '/assets/vaquita-comi-Sheet.png' 
+        },
+        'gallina': {
+            walkRight: '/assets/gallina-dere.png',
+            walkLeft: '/assets/gallina-izq.png',
+            walkFront: '/assets/gallina-front.png',
+            walkBack: '/assets/gallina-atras.png',
+            idle: '/assets/galli-comiendo.png'
+        },
+        'conejo': { 
+            walkRight: '/assets/conejito-animation-dere-Sheet.png',
+            walkLeft: '/assets/conejito-animation-izq-Sheet.png',
+            walkFront: '/assets/conejito-animation-Sheet.png',
+            walkBack: '/assets/conejito-atras.png',
+            idle: '/assets/conejito-comiendo-Sheet.png'
+        },
+        'unicornio': { 
+            walkRight: '/assets/unicornio-dere.png',
+            walkLeft: '/assets/unicornio-iz.png',
+            walkFront: '/assets/unicornio-front.png',
+            walkBack: '/assets/unicornio-atras.png',
+            idle: '/assets/unicornio-idle.png'
+        },
+    };
+    return spriteMap[animalType] || spriteMap['gallina'];
+}
+
 
     updateFrame() {
         this.frameCounter++;
@@ -426,7 +433,7 @@ export class NPC extends CharacterModel {
     constructor(NpcType, initialX = 0, initialY = 0, speed = 1) {
         super();
         this.NpcSizes = {
-            'chica': { width: 64, height: 64 },
+            'Katia': { width: 64, height: 64 },
         };
 
         if (!this.NpcSizes[NpcType]) {
@@ -440,39 +447,40 @@ export class NPC extends CharacterModel {
             position_x: initialX,
             position_y: initialY,
             frame: 0,
+            sprite:'/assets/Chica-Idle.png'
         };
 
         this.NpcType = NpcType;
         this.sprites = this.getNPCSprites(NpcType);
         this.state.sprite = this.sprites.idle;
-        this.frameCounter = 0; // Inicializa frameCounter
-        this.isIdle = true; // Inicializa estado de inactividad
-        this.speed = speed; // Establece la velocidad del NPC
+        this.frameCounter = 0; 
+        this.isIdle = true; 
+        this.speed = speed; 
     }
 
     updateIdleState() {
-        this.state.sprite = this.sprites.idle; // Cambia al sprite idle
-        this.updateFrame(); // Actualiza el frame para la animación
+        this.state.sprite = this.sprites.idle; 
+        this.updateFrame(); 
     }
 
     getNPCSprites(NpcType) {
         const spriteMap = {
-            'chica': {
-                idle: '../assets/Chica-Idle.png'
+            'Katia': {
+                idle: '/assets/Chica-Idle.png'
             },
         };
-        return spriteMap[NpcType] || spriteMap['chica'];
+        return spriteMap[NpcType] || spriteMap['Katia'];
     }
 
     updateFrame() {
         this.frameCounter++;
 
-        // Cambia a un frame diferente cada 30 ticks (ajusta este número para más lentitud)
+        // Cambia a un frame diferente cada 30 
         if (this.isIdle && this.frameCounter % 30 === 0) { 
             this.state.frame = (this.state.frame + 1) % 4; 
         }
     }
-
+    
     checkProximity(characterModel, range = 100) {
         const distance = Math.sqrt(
             Math.pow(this.state.position_x - characterModel.state.position_x, 2) + 

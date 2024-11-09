@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/register.css"> <!-- Enlace al archivo CSS -->
+    <link rel="stylesheet" href="/css/register.css">
 </head>
 <body>
     <div class="form-container">
@@ -23,7 +23,7 @@
 
     <script>
         document.getElementById('registerForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Evita que el formulario se envíe de forma predeterminada
+            event.preventDefault(); 
 
             const username = document.getElementById('register-username').value;
             const password = document.getElementById('register-password').value;
@@ -42,16 +42,16 @@
             })
             .then(data => {
                 if (data.success) {
-                    // Si el registro fue exitoso, muestra un mensaje de éxito
+                    
                     document.getElementById('register-message').textContent = "Registro exitoso. Ahora puedes iniciar sesión.";
                 } else {
-                    // Muestra un mensaje de error si el registro falló
+               
                     document.getElementById('register-message').textContent = data.message;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                document.getElementById('register-message').textContent = error.message; // Muestra el error en el HTML
+                document.getElementById('register-message').textContent = error.message; 
             });
         });
     </script>
